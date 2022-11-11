@@ -18,6 +18,9 @@ import Stack from "@mui/material/Stack";
 import { height } from "@mui/system";
 import babi from "./babi.jpg";
 
+import { db } from "./firebase.js";
+import { collection, addDoc } from "@firebase/firestore";
+
 export default function OperatorDialog({ open, onClose }) {
   // const [open, setOpen] = React.useState(false);
 
@@ -45,6 +48,26 @@ export default function OperatorDialog({ open, onClose }) {
   const handleNhsInput = (event) => {
     setNhs(event.target.value);
   };
+
+  async function handleSubmit() {
+    //writing to firabase
+    await addDoc(collection(db, "todos"), data);
+  }
+
+  const data = {
+    name: "Los Angeles",
+    state: "CA",
+    country: "USA",
+  };
+
+  // Add a new document in collection "cities" with ID 'LA'
+
+  async function handleSubmit2() {
+    //writing to firabase
+    await addDoc(collection(db, "todos"), {
+      title: "Example",
+    });
+  }
 
   return (
     <div>
@@ -124,8 +147,8 @@ export default function OperatorDialog({ open, onClose }) {
             control={<Checkbox defaultChecked />}
             label="Patient is not dead"
           />
-          <Button onClick={onClose}>Abort</Button>
-          <Button onClick={onClose}>Submit</Button>
+          <Button onClick={handleSubmit2}>Abort</Button>
+          <Button onClick={handleSubmit}>Submit</Button>
         </DialogActions>
       </Dialog>
     </div>
