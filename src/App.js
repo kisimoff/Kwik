@@ -1,11 +1,10 @@
 import { React, useState } from "react";
-
+import "./App.css";
 import ambulanceRotate from "./ambulanceRotate.svg";
 import kwickmedical from "./kwickmedical.png";
 import ambulance from "./ambulance.svg";
 import hospital from "./hospital.svg";
 import operator from "./operator.svg";
-import "./App.css";
 import Button from "@mui/material/Button";
 import ButtonGroup from "@mui/material/ButtonGroup";
 import OperatorDialog from "./Operator.js";
