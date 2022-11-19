@@ -41,9 +41,9 @@ export default function OperatorDialog({ open, onClose }) {
   };
 
   const casesRef = collection(db, "Patients");
-  const hospRefFinal = doc(db, "Hospitals", 'Hospital "Final Destination"');
-  const hospRefStich = doc(db, "Hospitals", 'Hospital "In Stitches"');
-  const hospRefAll = doc(db, "Hospitals", 'Hospital "The All-Nighters"');
+  const hospRefFinal = doc(db, "Hospitals", "Hospital Final Destination");
+  const hospRefStich = doc(db, "Hospitals", "Hospital In Stitches");
+  const hospRefAll = doc(db, "Hospitals", "Hospital The All-Nighters");
 
   const [patientData, setPatientData] = useState(patientDataInit);
 

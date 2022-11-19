@@ -8,7 +8,6 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
-import Box from "@mui/material/Box";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
@@ -17,33 +16,23 @@ import FormGroup from "@mui/material/FormGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import Stack from "@mui/material/Stack";
-import { height } from "@mui/system";
-import babi from "./babi.jpg";
-import Radio from "@mui/material/Radio";
-import RadioGroup from "@mui/material/RadioGroup";
-import ambulance from "./amgif.gif";
 
+import ambulance from "./amgif.gif";
+import { useCollectionData } from "react-firebase-hooks/firestore";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import Autocomplete from "@mui/material/Autocomplete";
 import { db } from "./firebase.js";
 import {
   collection,
   addDoc,
   doc,
   setDoc,
+  getDocs,
   onSnapshot,
 } from "firebase/firestore";
 
 export default function OperatorDialog({ open, onClose }) {
-  // const [open, setOpen] = React.useState(false);
-
-  // const handleClickOpen = () => {
-  //   setOpen(true);
-  // };
-
-  // const handleClose = () => {
-  //   setOpen(false);
-  // };
   const [name, setName] = React.useState("");
 
   const [gender, setGender] = React.useState("");
@@ -51,33 +40,67 @@ export default function OperatorDialog({ open, onClose }) {
   const [nhs, setNhs] = React.useState("");
 
   const [alignment, setAlignment] = React.useState("left");
-  const [devices, setDevices] = React.useState(() => ["phone"]);
-
   const handleAlignment = (event, newAlignment) => {
     if (newAlignment !== null) {
       setAlignment(newAlignment);
     }
   };
 
-  // const unsub = onSnapshot(doc(db, "Patients"), (doc) => {
-  //   console.log("Current data: ", doc.data());
-  // });
+  const [names, setNames] = useState(["John Doe"]);
 
-  const [names, setNames] = useState(["Oliver Hansen"]);
+  const hospitals = [
+    "Hospital Final Destination",
+    "Hospital In Stitches",
+    "Hospital The All-Nighters",
+  ];
+
+  const [value, setValue] = React.useState(hospitals[0]);
+  const [inputValue, setInputValue] = React.useState(" ");
+
+  const [value2, setValue2] = React.useState(names[0]);
+  const [inputValue2, setInputValue2] = React.useState("");
 
   const hospRef = collection(db, "Patients");
-  const [hospitals, setHospitals] = useState([""]);
+  const hosppRef = collection(db, "Hospitals");
+
+  const messageRef = collection(
+    db,
+    "Hospitals",
+    'Hospital "Final Destination"',
+    "Cases"
+  );
+
+  // useEffect(
+  //   () =>
+  //     onSnapshot(messageRef, (snapshot) =>
+  //       setNames(snapshot.docs.map((doc) => doc.data().name))
+  //     ),
+
+  //   []
+  // );
 
   const [artists, setArtists] = useState([]);
+
   let nextId = 0;
 
-  useEffect(
-    () =>
-      onSnapshot(hospRef, (snapshot) =>
+  const [docss, loading, error] = useCollectionData(hosppRef);
+
+  function Printme() {
+    {
+      onSnapshot(messageRef, (snapshot) =>
         setNames(snapshot.docs.map((doc) => doc.data().name))
-      ),
-    []
-  );
+      );
+    }
+  }
+  function loadCasesFor() {
+    const path = `/Hospitals/${inputValue}/Cases`;
+    const messageRef1 = collection(db, path);
+    onSnapshot(messageRef1, (snapshot) =>
+      setNames(snapshot.docs.map((doc) => doc.data().name))
+    );
+    console.log(names);
+    setValue2(names[0]);
+  }
 
   const handleSelectGender = (event) => {
     setGender(event.target.value);
@@ -92,6 +115,7 @@ export default function OperatorDialog({ open, onClose }) {
   };
 
   const [personName, setPersonName] = React.useState([]);
+
   const handleChangeMultiple = (event) => {
     const { options } = event.target;
     const value = [];
@@ -102,6 +126,26 @@ export default function OperatorDialog({ open, onClose }) {
     }
     setPersonName(value);
   };
+
+  const [hospitalName, setHospitalName] = useState([""]);
+  const handleHospitalSelect = (event) => {
+    const { options } = event.target;
+    const value = [];
+    for (let i = 0, l = options.length; i < l; i += 1) {
+      if (options[i].selected) {
+        value.push(options[i].value);
+      }
+    }
+    setHospitalName(value);
+
+    const hos = hospitalName.join("").toString();
+    loadCasesFor(hos);
+  };
+  const [age, setAge] = React.useState("");
+
+  const handleChange = (event) => {
+    setAge(event.target.value);
+  };
   return (
     <div>
       <Dialog open={open} onClose={onClose}>
@@ -109,47 +153,48 @@ export default function OperatorDialog({ open, onClose }) {
           Hospital
         </DialogTitle>
         <DialogContent>
-          <Stack direction="row" justifyContent="space-around">
-            <p>Select Hospital</p>
-            <p>Active Cases</p>
-          </Stack>
-
-          <Stack direction="row" justifyContent="space-around">
-            <Select
-              sx={{ mr: 1 }}
-              multiple
-              native
-              value={personName}
-              // @ts-ignore Typings are not considering `native`
-              onChange={handleChangeMultiple}
-              inputProps={{
-                id: "select-multiple-native",
-              }}
-            >
-              {hospitals.map((hospital) => (
-                <option key={hospital} value={hospital}>
-                  {hospitals}
-                </option>
-              ))}
-            </Select>
-
-            <Select
-              multiple
-              native
-              value={personName}
-              // @ts-ignore Typings are not considering `native`
-              onChange={handleChangeMultiple}
-              inputProps={{
-                id: "select-multiple-native",
-              }}
-            >
-              {names.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </Select>
-          </Stack>
+          <Autocomplete
+            value={value}
+            onChange={(event, newValue) => {
+              setValue(newValue);
+            }}
+            inputValue={inputValue}
+            onInputChange={(event, newInputValue) => {
+              setInputValue(newInputValue);
+              loadCasesFor();
+            }}
+            id="controllable-states-demo"
+            options={hospitals}
+            sx={{ py: 2 }}
+            renderInput={(params) => (
+              <TextField {...params} label="Select Hospital" />
+            )}
+          />
+          <Autocomplete
+            disablePortal
+            id="combo-box-demo"
+            options={names}
+            sx={{ width: 300 }}
+            renderInput={(params) => (
+              <TextField {...params} label="Select Case" />
+            )}
+          />
+          {/* <Autocomplete
+            value={value2}
+            onChange={(event, newValue) => {
+              setNames(newValue);
+            }}
+            inputValue={inputValue2}
+            onInputChange={(event, newInputValue) => {
+              setInputValue2(newInputValue);
+            }}
+            id="controllable-states-demo"
+            options={names}
+            sx={{ py: 2 }}
+            renderInput={(params) => (
+              <TextField {...params} label="Select Case" />
+            )}
+          /> */}
 
           <p style={{ margin: 0, padding: 5, textAlign: "center" }}>
             Patient Information
@@ -240,7 +285,7 @@ export default function OperatorDialog({ open, onClose }) {
             control={<Checkbox defaultChecked />}
             label="Patient is not dead"
           />
-          <Button onClick={onClose}>Abort</Button>
+          <Button onClick={Printme}>Abort</Button>
           <Button onClick={onClose}>Assign</Button>
         </DialogActions>
       </Dialog>

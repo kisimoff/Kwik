@@ -50,9 +50,9 @@ export default function OperatorDialog({ open, onClose }) {
   };
 
   const hospitals = [
-    'Hospital "Final Destination"',
-    'Hospital "In Stitches"',
-    'Hospital "The All-Nighters"',
+    "Hospital Final Destination",
+    "Hospital In Stitches",
+    "Hospital The All-Nighters",
   ];
   const names = [
     "Oliver Hansen",
