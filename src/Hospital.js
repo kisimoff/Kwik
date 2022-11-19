@@ -1,4 +1,6 @@
 import * as React from "react";
+import { useState, useEffect } from "react";
+
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Dialog from "@mui/material/Dialog";
@@ -23,6 +25,14 @@ import ambulance from "./amgif.gif";
 
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import { db } from "./firebase.js";
+import {
+  collection,
+  addDoc,
+  doc,
+  setDoc,
+  onSnapshot,
+} from "firebase/firestore";
 
 export default function OperatorDialog({ open, onClose }) {
   // const [open, setOpen] = React.useState(false);
@@ -49,23 +59,26 @@ export default function OperatorDialog({ open, onClose }) {
     }
   };
 
-  const hospitals = [
-    'Hospital "Final Destination"',
-    'Hospital "In Stitches"',
-    'Hospital "The All-Nighters"',
-  ];
-  const names = [
-    "Oliver Hansen",
-    "Van Henry",
-    "April Tucker",
-    "Ralph Hubbard",
-    "Omar Alexander",
-    "Carlos Abbott",
-    "Miriam Wagner",
-    "Bradley Wilkerson",
-    "Virginia Andrews",
-    "Kelly Snyder",
-  ];
+  // const unsub = onSnapshot(doc(db, "Patients"), (doc) => {
+  //   console.log("Current data: ", doc.data());
+  // });
+
+  const [names, setNames] = useState(["Oliver Hansen"]);
+
+  const hospRef = collection(db, "Patients");
+  const [hospitals, setHospitals] = useState([""]);
+
+  const [artists, setArtists] = useState([]);
+  let nextId = 0;
+
+  useEffect(
+    () =>
+      onSnapshot(hospRef, (snapshot) =>
+        setNames(snapshot.docs.map((doc) => doc.data().name))
+      ),
+    []
+  );
+
   const handleSelectGender = (event) => {
     setGender(event.target.value);
   };
@@ -113,8 +126,8 @@ export default function OperatorDialog({ open, onClose }) {
                 id: "select-multiple-native",
               }}
             >
-              {hospitals.map((hospitals) => (
-                <option key={hospitals} value={hospitals}>
+              {hospitals.map((hospital) => (
+                <option key={hospital} value={hospital}>
                   {hospitals}
                 </option>
               ))}
