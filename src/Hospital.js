@@ -16,6 +16,9 @@ import FormGroup from "@mui/material/FormGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import Stack from "@mui/material/Stack";
+import Badge from "@mui/material/Badge";
+import Divider from "@mui/material/Divider";
+import Chip from "@mui/material/Chip";
 
 import ambulance from "./amgif.gif";
 import { useCollectionData } from "react-firebase-hooks/firestore";
@@ -28,17 +31,40 @@ import {
   addDoc,
   doc,
   setDoc,
+  getDoc,
   getDocs,
+  updateDoc,
   onSnapshot,
+  query,
+  where,
 } from "firebase/firestore";
 
 export default function OperatorDialog({ open, onClose }) {
   const [name, setName] = React.useState("");
-
+  const [patient, setPatient] = React.useState("");
+  const [patientId, setPatientId] = React.useState("");
+  const [patientLoad, setPatientLoad] = useState({
+    name: " ",
+    condition: "empty",
+    information: "empty",
+    nhs: " ",
+    postcode: " ",
+    ambulance: " ",
+    gender: " ",
+  });
   const [gender, setGender] = React.useState("");
 
-  const [nhs, setNhs] = React.useState("");
+  const [casePatient, setCasePatient] = useState({
+    name: "",
+    condition: "",
+    information: "",
+    nhs: "",
+    postcode: "",
+    ambulance: "",
+    gender: "",
+  });
 
+  const [nhs, setNhs] = React.useState("");
   const [alignment, setAlignment] = React.useState("left");
   const handleAlignment = (event, newAlignment) => {
     if (newAlignment !== null) {
@@ -51,16 +77,14 @@ export default function OperatorDialog({ open, onClose }) {
   const hospitals = [
     "Hospital Final Destination",
     "Hospital In Stitches",
-    "Hospital The All-Nighters",
+    "Hospital The All Nighters",
   ];
 
   const [value, setValue] = React.useState(hospitals[0]);
   const [inputValue, setInputValue] = React.useState(" ");
 
   const [value2, setValue2] = React.useState(names[0]);
-  const [inputValue2, setInputValue2] = React.useState("");
 
-  const hospRef = collection(db, "Patients");
   const hosppRef = collection(db, "Hospitals");
 
   const messageRef = collection(
@@ -70,36 +94,12 @@ export default function OperatorDialog({ open, onClose }) {
     "Cases"
   );
 
-  // useEffect(
-  //   () =>
-  //     onSnapshot(messageRef, (snapshot) =>
-  //       setNames(snapshot.docs.map((doc) => doc.data().name))
-  //     ),
-
-  //   []
-  // );
-
-  const [artists, setArtists] = useState([]);
-
-  let nextId = 0;
-
-  const [docss, loading, error] = useCollectionData(hosppRef);
-
   function Printme() {
     {
       onSnapshot(messageRef, (snapshot) =>
         setNames(snapshot.docs.map((doc) => doc.data().name))
       );
     }
-  }
-  function loadCasesFor() {
-    const path = `/Hospitals/${inputValue}/Cases`;
-    const messageRef1 = collection(db, path);
-    onSnapshot(messageRef1, (snapshot) =>
-      setNames(snapshot.docs.map((doc) => doc.data().name))
-    );
-    console.log(names);
-    setValue2(names[0]);
   }
 
   const handleSelectGender = (event) => {
@@ -114,33 +114,64 @@ export default function OperatorDialog({ open, onClose }) {
     setNhs(event.target.value);
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setPatientLoad({
+      ...patientLoad,
+      [name]: value,
+    });
+  };
+
   const [personName, setPersonName] = React.useState([]);
 
-  const handleChangeMultiple = (event) => {
-    const { options } = event.target;
-    const value = [];
-    for (let i = 0, l = options.length; i < l; i += 1) {
-      if (options[i].selected) {
-        value.push(options[i].value);
-      }
-    }
-    setPersonName(value);
-  };
+  function loadCasesFor(newInputValue) {
+    const path = `/Hospitals/${newInputValue}/Cases`;
+    const messageRef1 = collection(db, path);
+    onSnapshot(messageRef1, (snapshot) =>
+      // setCasePatient({
+      //   name: snapshot.docs.map((doc) => doc.data().name),
+      //   id: snapshot.docs.map((doc) => doc.data().name),
+      // })
 
-  const [hospitalName, setHospitalName] = useState([""]);
-  const handleHospitalSelect = (event) => {
-    const { options } = event.target;
-    const value = [];
-    for (let i = 0, l = options.length; i < l; i += 1) {
-      if (options[i].selected) {
-        value.push(options[i].value);
-      }
-    }
-    setHospitalName(value);
+      // setNames(snapshot.docs.map((doc) => doc.data().name))
+      setNames(snapshot.docs.map((doc) => doc.id))
+    );
+    console.log(names);
+    setValue2(casePatient.name[0]);
+  }
+  async function updateInfo() {
+    const docRef = doc(db, `/Hospitals/${inputValue}/Cases`, patientLoad.nhs);
+    // Set the "capital" field of the city 'DC'
+    await updateDoc(docRef, {
+      name: patientLoad.name,
+      condition: patientLoad.condition,
+      gender: patientLoad.gender,
+    });
+  }
+  async function loadPatientInfo(value2) {
+    const docRef = doc(db, `/Hospitals/${inputValue}/Cases`, value2);
+    console.log(docRef);
+    const docSnap = await getDoc(docRef);
 
-    const hos = hospitalName.join("").toString();
-    loadCasesFor(hos);
-  };
+    if (docSnap.exists()) {
+      console.log("Found!", docSnap.data().name);
+
+      setPatientLoad({
+        name: docSnap.data().name,
+        nhs: docSnap.data().nhs,
+        condition: docSnap.data().condition,
+        information: docSnap.data().information,
+        postcode: docSnap.data().postcode,
+        ambulance: docSnap.data().ambulance,
+        gender: docSnap.data().gender,
+      });
+      console.log(patientLoad);
+    } else {
+      // doc.data() will be undefined in this case
+      console.log("No such document!");
+    }
+  }
+
   const [age, setAge] = React.useState("");
 
   const handleChange = (event) => {
@@ -153,7 +184,18 @@ export default function OperatorDialog({ open, onClose }) {
           Hospital
         </DialogTitle>
         <DialogContent>
+          <Stack direction="row" justifyContent={"space-around"} sx={{ my: 2 }}>
+            <Badge badgeContent={4} color="primary">
+              <Chip label="Free Ambulances" />
+            </Badge>
+
+            <Badge badgeContent={4} color="primary">
+              <Chip label="Waiting for Ambulance" />
+            </Badge>
+          </Stack>
+
           <Autocomplete
+            id="controllable-states-demo"
             value={value}
             onChange={(event, newValue) => {
               setValue(newValue);
@@ -161,79 +203,62 @@ export default function OperatorDialog({ open, onClose }) {
             inputValue={inputValue}
             onInputChange={(event, newInputValue) => {
               setInputValue(newInputValue);
-              loadCasesFor();
+              console.log(newInputValue);
+              loadCasesFor(newInputValue);
             }}
-            id="controllable-states-demo"
             options={hospitals}
             sx={{ py: 2 }}
             renderInput={(params) => (
               <TextField {...params} label="Select Hospital" />
             )}
           />
-          <Autocomplete
-            disablePortal
-            id="combo-box-demo"
-            options={names}
-            sx={{ width: 300 }}
-            renderInput={(params) => (
-              <TextField {...params} label="Select Case" />
-            )}
-          />
-          {/* <Autocomplete
-            value={value2}
-            onChange={(event, newValue) => {
-              setNames(newValue);
-            }}
-            inputValue={inputValue2}
-            onInputChange={(event, newInputValue) => {
-              setInputValue2(newInputValue);
-            }}
-            id="controllable-states-demo"
-            options={names}
-            sx={{ py: 2 }}
-            renderInput={(params) => (
-              <TextField {...params} label="Select Case" />
-            )}
-          /> */}
+
+          <Stack direction="row">
+            <Autocomplete
+              id="combo-box-demo"
+              options={names}
+              value={patient}
+              onChange={(event, newValue) => {
+                setPatient(newValue);
+              }}
+              disablePortal
+              sx={{ width: 300 }}
+              renderInput={(params) => (
+                <TextField {...params} label="Select Case" />
+              )}
+            />
+
+            <Button
+              sx={{ width: "30%" }}
+              onClick={() => loadPatientInfo(patient)}
+              variant="contained"
+            >
+              Load
+            </Button>
+          </Stack>
 
           <p style={{ margin: 0, padding: 5, textAlign: "center" }}>
             Patient Information
           </p>
-
           <Stack direction="row">
             <TextField
               sx={{ pr: 1 }}
               id="outlined-name"
               margin="dense"
               label="Name"
-              value={name}
-              onChange={handleNameInput}
-            />
-            <TextField
-              id="outlined-name"
-              margin="dense"
-              label="NHS Number"
-              value={nhs}
-              onChange={handleNhsInput}
-            />
-          </Stack>
-          <Stack direction="row">
-            <TextField
-              sx={{ pr: 1 }}
-              id="outlined-name"
-              margin="dense"
-              label="Postcode"
-              value={nhs}
-              onChange={handleNhsInput}
+              name={"name"}
+              value={patientLoad.name}
+              onChange={handleInputChange}
             />
             <FormControl margin="dense" fullWidth>
               <InputLabel id="demo-simple-select-label">Gender</InputLabel>
               <Select
                 labelId="demo-simple-select-label"
                 id="demo-simple-select"
-                value={gender}
+                value={patientLoad.gender}
                 label="Gender"
-                onChange={handleSelectGender}
+                name={"gender"}
+                onChange={handleInputChange}
               >
                 <MenuItem value={"Male"}>Male</MenuItem>
                 <MenuItem value={"Felmale"}>Female</MenuItem>
@@ -250,18 +275,50 @@ export default function OperatorDialog({ open, onClose }) {
               </Select>
             </FormControl>
           </Stack>
-
+          <Stack direction="row">
+            <TextField
+              sx={{ pr: 1 }}
+              id="outlined-name"
+              margin="dense"
+              label="NHS Number"
+              InputProps={{
+                readOnly: true,
+              }}
+              name={"nhs"}
+              value={patientLoad.nhs}
+            />{" "}
+            <TextField
+              id="outlined-name"
+              margin="dense"
+              name={"postcode"}
+              InputProps={{
+                readOnly: true,
+              }}
+              label="Postcode"
+              value={patientLoad.postcode}
+            />
+          </Stack>
           <TextField
             id="outlined-name"
             fullWidth
             margin="dense"
             label="Medical Condition"
-            value={nhs}
+            value={patientLoad.condition}
+            name={"condition"}
             multiline
             rows={2}
-            onChange={handleNhsInput}
+            onChange={handleInputChange}
           />
-          <Stack direction="row" sx={{ justifyContent: "center" }}>
+          <TextField
+            id="outlined-name"
+            fullWidth
+            margin="dense"
+            label="Additonal Information"
+            value={patientLoad.information}
+            name={"condition"}
+            onChange={handleInputChange}
+          />
+          {/* <Stack direction="row" sx={{ justifyContent: "center" }}>
             <ToggleButtonGroup
               value={alignment}
               exclusive
@@ -278,15 +335,24 @@ export default function OperatorDialog({ open, onClose }) {
                 <img src={ambulance} className="amgif" alt="Ambulance" />
               </ToggleButton>
             </ToggleButtonGroup>
-          </Stack>
+          </Stack> */}
         </DialogContent>
         <DialogActions sx={{ mt: -2, pb: 1, justifyContent: "center" }}>
-          <FormControlLabel
+          {/* <FormControlLabel
             control={<Checkbox defaultChecked />}
             label="Patient is not dead"
-          />
-          <Button onClick={Printme}>Abort</Button>
-          <Button onClick={onClose}>Assign</Button>
+          /> */}
+          <Button variant="contained" onClick={Printme}>
+            Close
+          </Button>
+
+          <Button variant="contained" onClick={onClose}>
+            Discharge
+          </Button>
+
+          <Button variant="contained" onClick={updateInfo}>
+            Update
+          </Button>
         </DialogActions>
       </Dialog>
     </div>

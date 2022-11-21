@@ -15,9 +15,19 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import Stack from "@mui/material/Stack";
 import babi from "./babi.jpg";
-
 import { db } from "./firebase.js";
-import { collection, addDoc, doc, setDoc } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  doc,
+  setDoc,
+  getDoc,
+  query,
+  where,
+  getDocs,
+  updateDoc,
+  limit,
+} from "firebase/firestore";
 
 export default function OperatorDialog({ open, onClose }) {
   const data = {
@@ -33,17 +43,18 @@ export default function OperatorDialog({ open, onClose }) {
     gender: "",
     condition: "",
     inofrmation: "",
+    ambulance: "",
   };
 
   const ambulanceInit = {
-    status: "free",
+    free: true,
     case: "",
   };
 
   const casesRef = collection(db, "Patients");
   const hospRefFinal = doc(db, "Hospitals", "Hospital Final Destination");
   const hospRefStich = doc(db, "Hospitals", "Hospital In Stitches");
-  const hospRefAll = doc(db, "Hospitals", "Hospital The All-Nighters");
+  const hospRefAll = doc(db, "Hospitals", "Hospital The All Nighters");
 
   const [patientData, setPatientData] = useState(patientDataInit);
 
@@ -56,35 +67,76 @@ export default function OperatorDialog({ open, onClose }) {
   };
 
   var numberOfAmbulances = 3; //just change the var to alter the number of ambulances
-  async function addAmbulances(collection) {
-    for (let i = 1; i <= numberOfAmbulances; i++) {
-      await setDoc(
-        doc(collection, "Ambulances", `Ambulance${i}`),
-        ambulanceInit
-      );
+  async function addAmbulances(collection3) {
+    const docRef = doc(collection3, "Ambulances", "Ambulance1");
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+    } else {
+      // doc.data() will be undefined in this case
+      console.log("Creating Ambulances");
+      for (let i = 1; i <= numberOfAmbulances; i++) {
+        await setDoc(
+          doc(collection, "Ambulances", `Ambulance${i}`),
+          ambulanceInit
+        );
+      }
+    }
+
+    const casesRef = collection(collection3, "Ambulances");
+
+    const q = query(casesRef, where("free", "==", true));
+
+    const querySnapshot = await getDocs(q);
+    if (querySnapshot.empty) {
+      console.log("No ambulances avaliable.");
+      setPatientData({
+        ...patientData,
+        ambulance: "waiting",
+      });
+    } else {
+      console.log("Ambulances free:", querySnapshot.size);
+      const firstFree = querySnapshot.docs[0].id;
+      console.log("first free:", firstFree);
+      const ambulanceToAssign = doc(collection3, "Ambulances", firstFree);
+      await updateDoc(ambulanceToAssign, {
+        free: false,
+        case: patientData.nhs,
+      });
+      setPatientData({
+        ...patientData,
+        ambulance: "assigned",
+      });
     }
   }
 
   async function formSubmit(event) {
-    console.log(patientData);
     event.preventDefault();
-    await addDoc(casesRef, patientData);
+
     const nhsNumber = patientData.nhs;
 
     if (patientData.postcode === "3") {
-      await setDoc(doc(hospRefAll, "Cases", nhsNumber), patientData);
       addAmbulances(hospRefAll);
+      await setDoc(doc(hospRefAll, "Cases", nhsNumber), patientData);
+
+      //assignAmbulance(hospRefAll, nhsNumber);
     }
     if (patientData.postcode === "2") {
-      await setDoc(doc(hospRefFinal, "Cases", nhsNumber), patientData);
       addAmbulances(hospRefFinal);
+      await setDoc(doc(hospRefFinal, "Cases", nhsNumber), patientData);
     }
     if (patientData.postcode === "1") {
-      await setDoc(doc(hospRefStich, "Cases", nhsNumber), patientData);
       addAmbulances(hospRefStich);
+      await setDoc(doc(hospRefStich, "Cases", nhsNumber), patientData);
     }
+
+    console.log(patientData);
+    await addDoc(casesRef, patientData);
+    alert(
+      "Request recived. Ambulance is coming ASAP. State:",
+      patientData.ambulance
+    );
     setPatientData(patientDataInit);
-    alert("Submitted!");
   }
 
   return (
