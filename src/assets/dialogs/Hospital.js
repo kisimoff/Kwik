@@ -15,6 +15,7 @@ import { db } from "../../firebase.js";
 import LoadCase from "../components/LoadCase.js";
 import FormFields from "../components/FormFields.js";
 import ButtonUpdateCase from "../components/ButtonUpdateCase";
+import ButtonDischargeCase from "../components/ButtonStateUpdate";
 
 import {
   collection,
@@ -27,6 +28,7 @@ import {
   where,
   deleteDoc,
 } from "firebase/firestore";
+import ButtonStateUpdate from "../components/ButtonStateUpdate";
 
 export default function OperatorDialog({ open, onClose }) {
   const [freeAmbulances, setFreeAmbulances] = React.useState("");
@@ -46,16 +48,6 @@ export default function OperatorDialog({ open, onClose }) {
   });
   const [patientLoad, setPatientLoad] = useState(patientInit);
 
-  const [casePatient, setCasePatient] = useState({
-    name: "",
-    condition: "",
-    information: "",
-    nhs: "",
-    postcode: "",
-    ambulance: "",
-    gender: "",
-  });
-
   const [names, setNames] = useState(["John Doe"]);
 
   const hospitals = [
@@ -64,146 +56,89 @@ export default function OperatorDialog({ open, onClose }) {
     "Hospital The All Nighters",
   ];
 
-  const [value, setValue] = React.useState(hospitals[0]);
   const [inputValue, setInputValue] = React.useState(" ");
 
-  const [value2, setValue2] = React.useState(names[0]);
+  // async function updateFreeState(newInputValue) {
+  //   //need to do the queries after
+  //   const path = `/Hospitals/${newInputValue}/Ambulances`;
+  //   const ambulanceRef = collection(db, path);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setPatientLoad({
-      ...patientLoad,
-      [name]: value,
-    });
-  };
+  //   const qtrue = query(ambulanceRef, where("free", "==", true));
+  //   const qfalse = query(ambulanceRef, where("free", "==", false));
 
-  function loadCasesFor(newInputValue) {
-    const path = `/Hospitals/${newInputValue}/Cases`;
-    const messageRef1 = collection(db, path);
-    onSnapshot(messageRef1, (snapshot) =>
-      setNames(snapshot.docs.map((doc) => doc.id))
-    );
-    console.log(names);
-    setValue2(casePatient.name[0]);
-    updateFreeState(newInputValue);
-  }
+  //   const querySnapshotTrue = await getDocs(qtrue);
+  //   const querySnapshotFalse = await getDocs(qfalse);
 
-  async function updateFreeState(newInputValue) {
-    //need to do the queries after
-    const path = `/Hospitals/${newInputValue}/Ambulances`;
-    const ambulanceRef = collection(db, path);
+  //   const path2 = `/Hospitals/${newInputValue}/Cases`;
+  //   const messageRef1 = collection(db, path2);
 
-    const qtrue = query(ambulanceRef, where("free", "==", true));
-    const qfalse = query(ambulanceRef, where("free", "==", false));
+  //   const qWaitingCases = query(messageRef1, where("status", "==", "waiting"));
+  //   const querySnapshotWaitingCases = await getDocs(qWaitingCases);
 
-    const querySnapshotTrue = await getDocs(qtrue);
-    const querySnapshotFalse = await getDocs(qfalse);
+  //   if (querySnapshotWaitingCases.size > 0 && querySnapshotTrue.size > 0) {
+  //     const firstFree = querySnapshotTrue.docs[0].id;
 
-    const path2 = `/Hospitals/${newInputValue}/Cases`;
-    const messageRef1 = collection(db, path2);
+  //     const ambulanceToAssign = doc(db, path, firstFree);
+  //     const patientToAssing = doc(
+  //       db,
+  //       `/Hospitals/${newInputValue}/Cases`,
+  //       querySnapshotWaitingCases.docs[0].id
+  //     );
 
-    const qWaitingCases = query(messageRef1, where("status", "==", "waiting"));
-    const querySnapshotWaitingCases = await getDocs(qWaitingCases);
+  //     await updateDoc(ambulanceToAssign, {
+  //       free: false,
+  //       case: querySnapshotWaitingCases.docs[0].id,
+  //     });
 
-    if (querySnapshotWaitingCases.size > 0 && querySnapshotTrue.size > 0) {
-      const firstFree = querySnapshotTrue.docs[0].id;
+  //     await updateDoc(patientToAssing, {
+  //       status: "assigned",
+  //     });
+  //     setWaiting(querySnapshotWaitingCases.size);
+  //   }
 
-      const ambulanceToAssign = doc(db, path, firstFree);
-      const patientToAssing = doc(
-        db,
-        `/Hospitals/${newInputValue}/Cases`,
-        querySnapshotWaitingCases.docs[0].id
-      );
+  //   if (querySnapshotTrue.size === 0 && querySnapshotFalse.size === 0) {
+  //     console.log("empty");
+  //     setFreeAmbulances("empty");
+  //   } else {
+  //     setFreeAmbulances(querySnapshotTrue.size);
+  //   }
+  // }
 
-      await updateDoc(ambulanceToAssign, {
-        free: false,
-        case: querySnapshotWaitingCases.docs[0].id,
-      });
+  // async function disCharge() {
+  //   //todo: update waiting state properly
+  //   const docRef2 = doc(db, "Patients", patientLoad.nhs);
+  //   await updateDoc(docRef2, {
+  //     name: patientLoad.name,
+  //     condition: patientLoad.condition,
+  //     gender: patientLoad.gender,
+  //     //information: patientLoad.information,
+  //     status: "discharged",
+  //     hisotry: "Discharged from: " + inputValue + " at: " + Date(),
+  //   });
+  //   await deleteDoc(doc(db, `/Hospitals/${inputValue}/Cases`, patientLoad.nhs));
+  //   await freeUpAmbulance();
+  //   await updateFreeState(inputValue);
+  //   setPatientLoad(patientInit);
+  //   // have to free up ambulance, state - free, case "" , if waiting > 0 assign first waiting
+  // }
 
-      await updateDoc(patientToAssing, {
-        status: "assigned",
-      });
-      setWaiting(querySnapshotWaitingCases.size);
-    }
+  // async function freeUpAmbulance() {
+  //   const ambulanceRef = collection(db, `/Hospitals/${inputValue}/Ambulances`);
+  //   const q = query(ambulanceRef, where("case", "==", patientLoad.nhs));
+  //   const querySnapshot = await getDocs(q);
+  //   const firstFree = querySnapshot.docs[0].id;
+  //   const ambulanceToFree = doc(
+  //     db,
+  //     `/Hospitals/${inputValue}/Ambulances`,
+  //     firstFree
+  //   );
+  //   await updateDoc(ambulanceToFree, {
+  //     free: true,
+  //     case: " ",
+  //   });
 
-    if (querySnapshotTrue.size === 0 && querySnapshotFalse.size === 0) {
-      console.log("empty");
-      setFreeAmbulances("empty");
-    } else {
-      setFreeAmbulances(querySnapshotTrue.size);
-    }
-  }
-
-  async function updateInfo() {
-    const docRef = doc(db, `/Hospitals/${inputValue}/Cases`, patientLoad.nhs);
-    // Set the "capital" field of the city 'DC'
-    await updateDoc(docRef, {
-      name: patientLoad.name,
-      condition: patientLoad.condition,
-      gender: patientLoad.gender,
-    });
-  }
-
-  async function disCharge() {
-    //todo: update waiting state properly
-    const docRef2 = doc(db, "Patients", patientLoad.nhs);
-    await updateDoc(docRef2, {
-      name: patientLoad.name,
-      condition: patientLoad.condition,
-      gender: patientLoad.gender,
-      //information: patientLoad.information,
-      status: "discharged",
-      hisotry: "Discharged from: " + inputValue + " at: " + Date(),
-    });
-    await deleteDoc(doc(db, `/Hospitals/${inputValue}/Cases`, patientLoad.nhs));
-    await freeUpAmbulance();
-    await updateFreeState(inputValue);
-    setPatientLoad(patientInit);
-    // have to free up ambulance, state - free, case "" , if waiting > 0 assign first waiting
-  }
-
-  async function freeUpAmbulance() {
-    const ambulanceRef = collection(db, `/Hospitals/${inputValue}/Ambulances`);
-    const q = query(ambulanceRef, where("case", "==", patientLoad.nhs));
-    const querySnapshot = await getDocs(q);
-    const firstFree = querySnapshot.docs[0].id;
-    const ambulanceToFree = doc(
-      db,
-      `/Hospitals/${inputValue}/Ambulances`,
-      firstFree
-    );
-    await updateDoc(ambulanceToFree, {
-      free: true,
-      case: " ",
-    });
-
-    setPatientLoad(patientInit);
-  }
-
-  async function loadPatientInfo(value2) {
-    const docRef = doc(db, `/Hospitals/${inputValue}/Cases`, value2);
-    console.log(docRef);
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
-      console.log("Found!", docSnap.data().name);
-
-      setPatientLoad({
-        name: docSnap.data().name,
-        nhs: docSnap.data().nhs,
-        condition: docSnap.data().condition,
-        information: docSnap.data().information,
-        postcode: docSnap.data().postcode,
-        ambulance: docSnap.data().ambulance,
-        gender: docSnap.data().gender,
-        status: docSnap.data().status,
-      });
-      console.log(patientLoad);
-    } else {
-      // doc.data() will be undefined in this case
-      console.log("No such document!");
-    }
-  }
+  //   setPatientLoad(patientInit);
+  // }
 
   return (
     <div>
@@ -235,6 +170,7 @@ export default function OperatorDialog({ open, onClose }) {
           <LoadCase
             setLoadedHospital={setLoadedHospital}
             setCaseInfo={setCaseInfo}
+            isAssigned={false}
           ></LoadCase>
 
           <Divider sx={{ my: 1, pt: 1 }} />
@@ -339,18 +275,24 @@ export default function OperatorDialog({ open, onClose }) {
             control={<Checkbox defaultChecked />}
             label="Patient is not dead"
           /> */}
-          <Button variant="contained" onClick={onClose}>
+          <Button variant="contained" onClick={onClose} sx={{ m: 1 }}>
             Close
           </Button>
 
-          <Button variant="contained" onClick={disCharge}>
-            Discharge
-          </Button>
+          {/* <Button variant="contained">Discharge</Button> */}
 
           <ButtonUpdateCase
             caseInfo={caseInfo}
             hospital={loadedHospital}
           ></ButtonUpdateCase>
+
+          <ButtonStateUpdate
+            caseInfo={caseInfo}
+            hospital={loadedHospital}
+            setCaseInfo={setCaseInfo}
+            patientInit={patientInit}
+            discharge={true}
+          ></ButtonStateUpdate>
         </DialogActions>
       </Dialog>
     </div>

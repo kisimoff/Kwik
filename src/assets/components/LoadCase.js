@@ -15,7 +15,11 @@ import {
   where,
 } from "firebase/firestore";
 
-export default function LoadCase({ setCaseInfo, setLoadedHospital }) {
+export default function LoadCase({
+  setCaseInfo,
+  setLoadedHospital,
+  isAssigned,
+}) {
   const [patient, setPatient] = React.useState("");
   const [hospital, setHospital] = React.useState("Hospital Example");
   const [disabled, setDisabled] = React.useState("");
@@ -41,7 +45,12 @@ export default function LoadCase({ setCaseInfo, setLoadedHospital }) {
   async function loadCasesFor(newInputValue) {
     const path = `/Hospitals/${newInputValue}/Cases`;
     const messageRef1 = collection(db, path);
-    const q = query(messageRef1, where("status", "==", "assigned"));
+    if (isAssigned) {
+      var q = query(messageRef1, where("status", "==", "assigned"));
+    } else {
+      var q = query(messageRef1);
+    }
+
     const querySnapshot = await getDocs(q);
     if (querySnapshot.size == 0) {
       setCases([]);

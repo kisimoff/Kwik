@@ -13,12 +13,12 @@ export default function FormFields({ setCaseInfo, caseInfo }) {
   const [loadCaseResponse, setLoadCaseResponse] = React.useState({});
   const [patientInit, setPatientInit] = React.useState({
     name: " ",
+    gender: " ",
     condition: " ",
     information: " ",
     nhs: " ",
     postcode: " ",
     ambulance: " ",
-    gender: " ",
     status: " ",
   });
   if (isObjectEmpty(caseInfo)) {
@@ -62,6 +62,7 @@ export default function FormFields({ setCaseInfo, caseInfo }) {
             onChange={handleInputChange}
           >
             <MenuItem value={"Male"}>Male</MenuItem>
+            <MenuItem value={"Empty"}>Empty</MenuItem>
             <MenuItem value={"Felmale"}>Female</MenuItem>
             <MenuItem value={"Agender"}>Agender</MenuItem>
             <MenuItem value={"Bigender"}>Bigender</MenuItem>
