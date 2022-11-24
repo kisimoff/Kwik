@@ -1,15 +1,16 @@
 import { React, useState } from "react";
 import "./App.css";
-import ambulanceRotate from "./ambulanceRotate.svg";
-import kwickmedical from "./kwickmedical.png";
-import ambulance from "./ambulance.svg";
-import hospital from "./hospital.svg";
-import operator from "./operator.svg";
+import ambulanceRotate from "./assets/media/ambulanceRotate.svg";
+import kwickmedical from "./assets/media/kwickmedical.png";
+import ambulance from "./assets/media/ambulance.svg";
+import hospital from "./assets/media/hospital.svg";
+import operator from "./assets/media/operator.svg";
 import Button from "@mui/material/Button";
 import ButtonGroup from "@mui/material/ButtonGroup";
-import OperatorDialog from "./Operator.js";
-import HospitalDialog from "./Hospital.js";
-import AmblanceDialog from "./Ambulance.js";
+import OperatorDialog from "./assets/dialogs/Operator.js";
+import HospitalDialog from "./assets/dialogs/Hospital.js";
+import AmblanceDialog from "./assets/dialogs/Ambulance.js";
+import babi from "./assets/media/babi.jpg";
 
 function App() {
   const [isOperator, setIsOperator] = useState(false);
@@ -55,6 +56,7 @@ function App() {
           </Button>
         </ButtonGroup>
       </div>
+      <img src={babi} className="babi" alt="Ambulance" />
 
       <OperatorDialog
         open={isOperator}

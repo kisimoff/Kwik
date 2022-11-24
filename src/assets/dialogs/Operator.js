@@ -14,11 +14,9 @@ import Select from "@mui/material/Select";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import Stack from "@mui/material/Stack";
-import babi from "./babi.jpg";
-import { db } from "./firebase.js";
+import { db } from "../../firebase.js";
 import {
   collection,
-  addDoc,
   doc,
   setDoc,
   getDoc,
@@ -26,16 +24,9 @@ import {
   where,
   getDocs,
   updateDoc,
-  limit,
 } from "firebase/firestore";
 
 export default function OperatorDialog({ open, onClose }) {
-  const data = {
-    name: "Los Angeles",
-    state: "CA",
-    country: "USA",
-  };
-
   const patientDataInit = {
     status: "",
     name: "",
@@ -51,7 +42,6 @@ export default function OperatorDialog({ open, onClose }) {
     case: "",
   };
 
-  const casesRef = collection(db, "Patients");
   const hospRefFinal = doc(db, "Hospitals", "Hospital Final Destination"); // postcode -2
   const hospRefStich = doc(db, "Hospitals", "Hospital In Stitches"); //postcode - 1
   const hospRefAll = doc(db, "Hospitals", "Hospital The All Nighters"); // poscode - 3
@@ -137,8 +127,6 @@ export default function OperatorDialog({ open, onClose }) {
   async function formSubmit(event) {
     event.preventDefault();
 
-    const nhsNumber = patientData.nhs;
-
     if (patientData.postcode === "3") {
       await addAmbulances(hospRefAll);
       //await writeToDb(hospRefAll);
@@ -182,8 +170,6 @@ export default function OperatorDialog({ open, onClose }) {
 
   return (
     <div>
-      <img src={babi} className="babi" alt="Ambulance" />
-
       <Dialog open={open} onClose={onClose}>
         <form onSubmit={report}>
           <DialogTitle sx={{ m: 0, p: 1, textAlign: "center" }}>

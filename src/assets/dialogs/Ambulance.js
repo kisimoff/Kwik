@@ -20,12 +20,11 @@ import Badge from "@mui/material/Badge";
 import Divider from "@mui/material/Divider";
 import Chip from "@mui/material/Chip";
 
-import ambulance from "./amgif.gif";
 import { useCollectionData } from "react-firebase-hooks/firestore";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Autocomplete from "@mui/material/Autocomplete";
-import { db } from "./firebase.js";
+import { db } from "../../firebase.js";
 import {
   collection,
   addDoc,
@@ -46,6 +45,8 @@ export default function OperatorDialog({ open, onClose }) {
   const [patientId, setPatientId] = React.useState("");
   const [freeAmbulances, setFreeAmbulances] = React.useState("");
   const [waiting, setWaiting] = React.useState("");
+  const [names, setNames] = useState([]);
+
   const [patientInit, setPatientInit] = React.useState({
     name: " ",
     condition: " ",
@@ -78,13 +79,12 @@ export default function OperatorDialog({ open, onClose }) {
     }
   };
 
-  const [names, setNames] = useState(["John Doe"]);
-
   const hospitals = [
     "Hospital Final Destination",
     "Hospital In Stitches",
     "Hospital The All Nighters",
   ];
+  const ambulances = ["Ambulance 1", "Ambulance 2 ", "Ambulance 3"];
 
   const [value, setValue] = React.useState(hospitals[0]);
   const [inputValue, setInputValue] = React.useState(" ");
@@ -130,15 +130,26 @@ export default function OperatorDialog({ open, onClose }) {
 
   const [personName, setPersonName] = React.useState([]);
 
-  function loadCasesFor(newInputValue) {
+  async function loadCasesFor(newInputValue) {
     const path = `/Hospitals/${newInputValue}/Cases`;
     const messageRef1 = collection(db, path);
-    onSnapshot(messageRef1, (snapshot) =>
-      setNames(snapshot.docs.map((doc) => doc.id))
-    );
-    console.log(names);
-    setValue2(casePatient.name[0]);
-    updateFreeState(newInputValue);
+    const q = query(messageRef1, where("status", "==", "assigned"));
+    const querySnapshot = await getDocs(q);
+    if (querySnapshot.size == 0) {
+      setNames([]);
+    } else {
+      querySnapshot.forEach((doc) => {
+        // doc.data() is never undefined for query doc snapshots
+        // setNames(snapshot.docs.map((doc) => doc.id));
+        //console.log(doc.id, " => ", doc.data());
+        //  setNames(doc.id);
+        //setNames(snapshot.doc.map((doc) => doc.id));
+        setNames((names) => [...names, doc.id]);
+      });
+
+      console.log(names);
+      setValue2(casePatient.name[0]);
+    }
   }
 
   async function updateWaitingState(messageRef1) {
@@ -149,47 +160,21 @@ export default function OperatorDialog({ open, onClose }) {
   }
 
   async function updateFreeState(newInputValue) {
-    //need to do the queries after
     const path = `/Hospitals/${newInputValue}/Ambulances`;
     const ambulanceRef = collection(db, path);
 
-    const qtrue = query(ambulanceRef, where("free", "==", true));
-    const qfalse = query(ambulanceRef, where("free", "==", false));
+    const q = query(ambulanceRef, where("free", "==", true));
+    const q2 = query(ambulanceRef, where("free", "==", false));
 
-    const querySnapshotTrue = await getDocs(qtrue);
-    const querySnapshotFalse = await getDocs(qfalse);
+    const querySnapshot = await getDocs(q);
+    const querySnapshot2 = await getDocs(q2);
 
-    const path2 = `/Hospitals/${newInputValue}/Cases`;
-    const messageRef1 = collection(db, path2);
-
-    const qWaitingCases = query(messageRef1, where("status", "==", "waiting"));
-    const querySnapshotWaitingCases = await getDocs(qWaitingCases);
-
-    if (querySnapshotWaitingCases.size > 0 && querySnapshotTrue.size > 0) {
-      const firstFree = querySnapshotTrue.docs[0].id;
-
-      const ambulanceToAssign = doc(db, path, firstFree);
-      const patientToAssing = doc(
-        db,
-        `/Hospitals/${newInputValue}/Cases`,
-        querySnapshotWaitingCases.docs[0].id
-      );
-
-      await updateDoc(ambulanceToAssign, {
-        free: false,
-        case: querySnapshotWaitingCases.docs[0].id,
-      });
-
-      await updateDoc(patientToAssing, {
-        status: "assigned",
-      });
-    }
-
-    if (querySnapshotTrue.size === 0 && querySnapshotFalse.size === 0) {
+    if (querySnapshot.size == 0 && querySnapshot2.size == 0) {
       console.log("empty");
       setFreeAmbulances("empty");
     } else {
-      setFreeAmbulances(querySnapshotTrue.size);
+      setFreeAmbulances(querySnapshot.size);
+      console.log(querySnapshot.size);
     }
   }
 
@@ -204,19 +189,15 @@ export default function OperatorDialog({ open, onClose }) {
   }
 
   async function disCharge() {
-    const docRef2 = doc(db, "Patients", patientLoad.nhs);
+    const docRef2 = doc(db, `/Hospitals/${inputValue}/Cases`, patientLoad.nhs);
     await updateDoc(docRef2, {
       name: patientLoad.name,
       condition: patientLoad.condition,
       gender: patientLoad.gender,
       //information: patientLoad.information,
-      status: "discharged",
-      hisotry: "Discharged from: " + inputValue + " at: " + Date(),
+      status: "hospitalised",
     });
-    await deleteDoc(doc(db, `/Hospitals/${inputValue}/Cases`, patientLoad.nhs));
-    await freeUpAmbulance();
-    await updateFreeState(inputValue);
-    setPatientLoad(patientInit);
+    freeUpAmbulance();
     // have to free up ambulance, state - free, case "" , if waiting > 0 assign first waiting
   }
 
@@ -234,7 +215,7 @@ export default function OperatorDialog({ open, onClose }) {
       free: true,
       case: " ",
     });
-
+    updateFreeState(inputValue);
     setPatientLoad(patientInit);
   }
 
@@ -272,38 +253,14 @@ export default function OperatorDialog({ open, onClose }) {
     <div>
       <Dialog open={open} onClose={onClose}>
         <DialogTitle sx={{ mb: -2, p: 0, pt: 0.5, textAlign: "center" }}>
-          Hospital
+          Ambulance
         </DialogTitle>
         <DialogContent>
-          <Stack direction="row" justifyContent={"space-around"} sx={{ mt: 2 }}>
-            {(() => {
-              if (freeAmbulances > 0)
-                return (
-                  <Badge badgeContent={freeAmbulances} color="primary">
-                    <Chip label="Free Ambulances" />
-                  </Badge>
-                );
-              if (freeAmbulances === "empty")
-                return <Chip label="Hospital Empty" color="primary" />;
-              if (freeAmbulances === 0)
-                return <Chip label="All ambulances busy!" color="primary" />;
-            })()}
-
-            {/* {freeAmbulances > 0 ? (
-              <Badge badgeContent={freeAmbulances} color="primary">
-                <Chip label="Free Ambulances" />
-              </Badge>
-            ) : (
-              {freeAmbulances == "empty" ? (<Chip label="All ambulances busy!" color="primary" />) : (
-              <Chip label="All ambulances busy!" color="primary" />)}
-            )} */}
-
-            {waiting > 0 ? (
-              <Badge badgeContent={waiting} color="primary">
-                <Chip label="Waiting for Ambulance" />
-              </Badge>
-            ) : null}
-          </Stack>
+          <Stack
+            direction="row"
+            justifyContent={"space-around"}
+            sx={{ mt: 2 }}
+          ></Stack>
           <Autocomplete
             id="controllable-states-demo"
             disableClearable
@@ -326,7 +283,7 @@ export default function OperatorDialog({ open, onClose }) {
           />
           <Stack direction="row" justifyContent={"space-between"}>
             <Autocomplete
-              disableClearable
+              disableClearable={names !== null}
               id="combo-box-demo"
               options={names}
               value={patient}
@@ -334,6 +291,7 @@ export default function OperatorDialog({ open, onClose }) {
                 setPatient(newValue);
                 setPatientLoad(patientInit);
               }}
+              label="test"
               disablePortal
               sx={{ width: "68%" }}
               renderInput={(params) => (
@@ -456,7 +414,7 @@ export default function OperatorDialog({ open, onClose }) {
           </Button>
 
           <Button variant="contained" onClick={disCharge}>
-            Discharge
+            Hospitalise
           </Button>
 
           <Button variant="contained" onClick={updateInfo}>

@@ -1,36 +1,24 @@
 import * as React from "react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import FormControl from "@mui/material/FormControl";
-import Select from "@mui/material/Select";
-import FormGroup from "@mui/material/FormGroup";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from "@mui/material/Checkbox";
+
 import Stack from "@mui/material/Stack";
 import Badge from "@mui/material/Badge";
 import Divider from "@mui/material/Divider";
 import Chip from "@mui/material/Chip";
+import { db } from "../../firebase.js";
+import LoadCase from "../components/LoadCase.js";
+import FormFields from "../components/FormFields.js";
+import ButtonUpdateCase from "../components/ButtonUpdateCase";
 
-import ambulance from "./amgif.gif";
-import { useCollectionData } from "react-firebase-hooks/firestore";
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-import Autocomplete from "@mui/material/Autocomplete";
-import { db } from "./firebase.js";
 import {
   collection,
-  addDoc,
   doc,
-  setDoc,
   getDoc,
   getDocs,
   updateDoc,
@@ -39,16 +27,13 @@ import {
   where,
   deleteDoc,
 } from "firebase/firestore";
-import { SetMeal } from "@mui/icons-material";
 
 export default function OperatorDialog({ open, onClose }) {
-  const [name, setName] = React.useState("");
-  const [patient, setPatient] = React.useState("");
-  const [patientId, setPatientId] = React.useState("");
   const [freeAmbulances, setFreeAmbulances] = React.useState("");
-  const [waiting, setWaiting] = React.useState("");
-  const [names, setNames] = useState([]);
+  const [loadedHospital, setLoadedHospital] = React.useState("");
 
+  const [waiting, setWaiting] = React.useState("");
+  const [caseInfo, setCaseInfo] = React.useState({});
   const [patientInit, setPatientInit] = React.useState({
     name: " ",
     condition: " ",
@@ -61,8 +46,6 @@ export default function OperatorDialog({ open, onClose }) {
   });
   const [patientLoad, setPatientLoad] = useState(patientInit);
 
-  const [gender, setGender] = React.useState("");
-
   const [casePatient, setCasePatient] = useState({
     name: "",
     condition: "",
@@ -73,54 +56,18 @@ export default function OperatorDialog({ open, onClose }) {
     gender: "",
   });
 
-  const [nhs, setNhs] = React.useState("");
-  const [alignment, setAlignment] = React.useState("left");
-  const handleAlignment = (event, newAlignment) => {
-    if (newAlignment !== null) {
-      setAlignment(newAlignment);
-    }
-  };
+  const [names, setNames] = useState(["John Doe"]);
 
   const hospitals = [
     "Hospital Final Destination",
     "Hospital In Stitches",
     "Hospital The All Nighters",
   ];
-  const ambulances = ["Ambulance 1", "Ambulance 2 ", "Ambulance 3"];
 
   const [value, setValue] = React.useState(hospitals[0]);
   const [inputValue, setInputValue] = React.useState(" ");
 
   const [value2, setValue2] = React.useState(names[0]);
-
-  const hosppRef = collection(db, "Hospitals");
-
-  const messageRef = collection(
-    db,
-    "Hospitals",
-    'Hospital "Final Destination"',
-    "Cases"
-  );
-
-  function Printme() {
-    {
-      onSnapshot(messageRef, (snapshot) =>
-        setNames(snapshot.docs.map((doc) => doc.data().name))
-      );
-    }
-  }
-
-  const handleSelectGender = (event) => {
-    setGender(event.target.value);
-  };
-
-  const handleNameInput = (event) => {
-    setName(event.target.value);
-  };
-
-  const handleNhsInput = (event) => {
-    setNhs(event.target.value);
-  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -130,53 +77,60 @@ export default function OperatorDialog({ open, onClose }) {
     });
   };
 
-  const [personName, setPersonName] = React.useState([]);
-
-  async function loadCasesFor(newInputValue) {
+  function loadCasesFor(newInputValue) {
     const path = `/Hospitals/${newInputValue}/Cases`;
     const messageRef1 = collection(db, path);
-    const q = query(messageRef1, where("status", "==", "assigned"));
-    const querySnapshot = await getDocs(q);
-    if (querySnapshot.size == 0) {
-      setNames([]);
-    } else {
-      querySnapshot.forEach((doc) => {
-        // doc.data() is never undefined for query doc snapshots
-        // setNames(snapshot.docs.map((doc) => doc.id));
-        //console.log(doc.id, " => ", doc.data());
-        //  setNames(doc.id);
-        //setNames(snapshot.doc.map((doc) => doc.id));
-        setNames((names) => [...names, doc.id]);
-      });
-
-      console.log(names);
-      setValue2(casePatient.name[0]);
-    }
-  }
-
-  async function updateWaitingState(messageRef1) {
-    const q = query(messageRef1, where("status", "==", "waiting"));
-    const querySnapshot = await getDocs(q);
-    setWaiting(querySnapshot.size);
-    console.log(querySnapshot.size);
+    onSnapshot(messageRef1, (snapshot) =>
+      setNames(snapshot.docs.map((doc) => doc.id))
+    );
+    console.log(names);
+    setValue2(casePatient.name[0]);
+    updateFreeState(newInputValue);
   }
 
   async function updateFreeState(newInputValue) {
+    //need to do the queries after
     const path = `/Hospitals/${newInputValue}/Ambulances`;
     const ambulanceRef = collection(db, path);
 
-    const q = query(ambulanceRef, where("free", "==", true));
-    const q2 = query(ambulanceRef, where("free", "==", false));
+    const qtrue = query(ambulanceRef, where("free", "==", true));
+    const qfalse = query(ambulanceRef, where("free", "==", false));
 
-    const querySnapshot = await getDocs(q);
-    const querySnapshot2 = await getDocs(q2);
+    const querySnapshotTrue = await getDocs(qtrue);
+    const querySnapshotFalse = await getDocs(qfalse);
 
-    if (querySnapshot.size == 0 && querySnapshot2.size == 0) {
+    const path2 = `/Hospitals/${newInputValue}/Cases`;
+    const messageRef1 = collection(db, path2);
+
+    const qWaitingCases = query(messageRef1, where("status", "==", "waiting"));
+    const querySnapshotWaitingCases = await getDocs(qWaitingCases);
+
+    if (querySnapshotWaitingCases.size > 0 && querySnapshotTrue.size > 0) {
+      const firstFree = querySnapshotTrue.docs[0].id;
+
+      const ambulanceToAssign = doc(db, path, firstFree);
+      const patientToAssing = doc(
+        db,
+        `/Hospitals/${newInputValue}/Cases`,
+        querySnapshotWaitingCases.docs[0].id
+      );
+
+      await updateDoc(ambulanceToAssign, {
+        free: false,
+        case: querySnapshotWaitingCases.docs[0].id,
+      });
+
+      await updateDoc(patientToAssing, {
+        status: "assigned",
+      });
+      setWaiting(querySnapshotWaitingCases.size);
+    }
+
+    if (querySnapshotTrue.size === 0 && querySnapshotFalse.size === 0) {
       console.log("empty");
       setFreeAmbulances("empty");
     } else {
-      setFreeAmbulances(querySnapshot.size);
-      console.log(querySnapshot.size);
+      setFreeAmbulances(querySnapshotTrue.size);
     }
   }
 
@@ -191,15 +145,20 @@ export default function OperatorDialog({ open, onClose }) {
   }
 
   async function disCharge() {
-    const docRef2 = doc(db, `/Hospitals/${inputValue}/Cases`, patientLoad.nhs);
+    //todo: update waiting state properly
+    const docRef2 = doc(db, "Patients", patientLoad.nhs);
     await updateDoc(docRef2, {
       name: patientLoad.name,
       condition: patientLoad.condition,
       gender: patientLoad.gender,
       //information: patientLoad.information,
-      status: "hospitalised",
+      status: "discharged",
+      hisotry: "Discharged from: " + inputValue + " at: " + Date(),
     });
-    freeUpAmbulance();
+    await deleteDoc(doc(db, `/Hospitals/${inputValue}/Cases`, patientLoad.nhs));
+    await freeUpAmbulance();
+    await updateFreeState(inputValue);
+    setPatientLoad(patientInit);
     // have to free up ambulance, state - free, case "" , if waiting > 0 assign first waiting
   }
 
@@ -217,7 +176,7 @@ export default function OperatorDialog({ open, onClose }) {
       free: true,
       case: " ",
     });
-    updateFreeState(inputValue);
+
     setPatientLoad(patientInit);
   }
 
@@ -246,75 +205,44 @@ export default function OperatorDialog({ open, onClose }) {
     }
   }
 
-  const [age, setAge] = React.useState("");
-
-  const handleChange = (event) => {
-    setAge(event.target.value);
-  };
   return (
     <div>
       <Dialog open={open} onClose={onClose}>
         <DialogTitle sx={{ mb: -2, p: 0, pt: 0.5, textAlign: "center" }}>
-          Ambulance
+          Hospital
         </DialogTitle>
         <DialogContent>
-          <Stack
-            direction="row"
-            justifyContent={"space-around"}
-            sx={{ mt: 2 }}
-          ></Stack>
-          <Autocomplete
-            id="controllable-states-demo"
-            disableClearable
-            value={value}
-            onChange={(event, newValue) => {
-              setValue(newValue);
-            }}
-            inputValue={inputValue}
-            onInputChange={(event, newInputValue) => {
-              setInputValue(newInputValue);
-              console.log(newInputValue);
-              loadCasesFor(newInputValue);
-              setPatient(" ");
-            }}
-            options={hospitals}
-            sx={{ py: 2 }}
-            renderInput={(params) => (
-              <TextField {...params} label="Select Hospital" />
-            )}
-          />
-          <Stack direction="row" justifyContent={"space-between"}>
-            <Autocomplete
-              disableClearable={names !== null}
-              id="combo-box-demo"
-              options={names}
-              value={patient}
-              onChange={(event, newValue) => {
-                setPatient(newValue);
-                setPatientLoad(patientInit);
-              }}
-              label="test"
-              disablePortal
-              sx={{ width: "68%" }}
-              renderInput={(params) => (
-                <TextField {...params} label="Select Case" />
-              )}
-            />
+          <Stack direction="row" justifyContent={"space-around"} sx={{ mt: 2 }}>
+            {(() => {
+              if (freeAmbulances > 0)
+                return (
+                  <Badge badgeContent={freeAmbulances} color="primary">
+                    <Chip label="Free Ambulances" />
+                  </Badge>
+                );
+              if (freeAmbulances === "empty")
+                return <Chip label="Hospital Empty" color="primary" />;
+              if (freeAmbulances === 0)
+                return <Chip label="All ambulances busy!" color="primary" />;
+            })()}
 
-            <Button
-              onClick={() => loadPatientInfo(patient)}
-              variant="contained"
-              fullWidth="true"
-              sx={{ width: "30%" }}
-            >
-              Load
-            </Button>
+            {waiting > 0 ? (
+              <Badge badgeContent={waiting} color="primary">
+                <Chip label="Waiting for Ambulance" />
+              </Badge>
+            ) : null}
           </Stack>
-          {/* <p style={{ margin: 0, padding: 5, textAlign: "center" }}>
-            Patient Information
-          </p> */}
-          <Divider sx={{ my: 1, pt: 1 }} />
+          <LoadCase
+            setLoadedHospital={setLoadedHospital}
+            setCaseInfo={setCaseInfo}
+          ></LoadCase>
 
+          <Divider sx={{ my: 1, pt: 1 }} />
+          <FormFields
+            setCaseInfo={setCaseInfo}
+            caseInfo={caseInfo}
+          ></FormFields>
+          {/* 
           <Stack direction="row">
             <TextField
               sx={{ pr: 1 }}
@@ -360,7 +288,7 @@ export default function OperatorDialog({ open, onClose }) {
                 readOnly: true,
               }}
               name={"nhs"}
-              value={patientLoad.nhs}
+              value={caseInfo.nhs}
             />{" "}
             <TextField
               id="outlined-name"
@@ -404,7 +332,7 @@ export default function OperatorDialog({ open, onClose }) {
             value={patientLoad.information}
             name={"information"}
             onChange={handleInputChange}
-          />
+          /> */}
         </DialogContent>
         <DialogActions sx={{ mt: -2, pb: 1, justifyContent: "center" }}>
           {/* <FormControlLabel
@@ -416,12 +344,13 @@ export default function OperatorDialog({ open, onClose }) {
           </Button>
 
           <Button variant="contained" onClick={disCharge}>
-            Hospitalise
+            Discharge
           </Button>
 
-          <Button variant="contained" onClick={updateInfo}>
-            Update
-          </Button>
+          <ButtonUpdateCase
+            caseInfo={caseInfo}
+            hospital={loadedHospital}
+          ></ButtonUpdateCase>
         </DialogActions>
       </Dialog>
     </div>
