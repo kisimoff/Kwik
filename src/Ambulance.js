@@ -1,4 +1,6 @@
 import * as React from "react";
+import { useState, useEffect } from "react";
+
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Dialog from "@mui/material/Dialog";
@@ -6,7 +8,6 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
-import Box from "@mui/material/Box";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
@@ -15,34 +16,65 @@ import FormGroup from "@mui/material/FormGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import Stack from "@mui/material/Stack";
-import { height } from "@mui/system";
-import babi from "./babi.jpg";
-import Radio from "@mui/material/Radio";
-import RadioGroup from "@mui/material/RadioGroup";
-import ambulance from "./amgif.gif";
+import Badge from "@mui/material/Badge";
+import Divider from "@mui/material/Divider";
+import Chip from "@mui/material/Chip";
 
+import ambulance from "./amgif.gif";
+import { useCollectionData } from "react-firebase-hooks/firestore";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import Autocomplete from "@mui/material/Autocomplete";
+import { db } from "./firebase.js";
+import {
+  collection,
+  addDoc,
+  doc,
+  setDoc,
+  getDoc,
+  getDocs,
+  updateDoc,
+  onSnapshot,
+  query,
+  where,
+  deleteDoc,
+} from "firebase/firestore";
+import { SetMeal } from "@mui/icons-material";
 
 export default function OperatorDialog({ open, onClose }) {
-  // const [open, setOpen] = React.useState(false);
-
-  // const handleClickOpen = () => {
-  //   setOpen(true);
-  // };
-
-  // const handleClose = () => {
-  //   setOpen(false);
-  // };
   const [name, setName] = React.useState("");
+  const [patient, setPatient] = React.useState("");
+  const [patientId, setPatientId] = React.useState("");
+  const [freeAmbulances, setFreeAmbulances] = React.useState("");
+  const [waiting, setWaiting] = React.useState("");
+  const [names, setNames] = useState([]);
+
+  const [patientInit, setPatientInit] = React.useState({
+    name: " ",
+    condition: " ",
+    information: " ",
+    nhs: " ",
+    postcode: " ",
+    ambulance: " ",
+    gender: " ",
+    status: " ",
+  });
+  const [patientLoad, setPatientLoad] = useState(patientInit);
 
   const [gender, setGender] = React.useState("");
 
+  const [casePatient, setCasePatient] = useState({
+    name: "",
+    condition: "",
+    information: "",
+    nhs: "",
+    postcode: "",
+    ambulance: "",
+    gender: "",
+  });
+
   const [nhs, setNhs] = React.useState("");
-
   const [alignment, setAlignment] = React.useState("left");
-  const [devices, setDevices] = React.useState(() => ["phone"]);
-
   const handleAlignment = (event, newAlignment) => {
     if (newAlignment !== null) {
       setAlignment(newAlignment);
@@ -54,18 +86,30 @@ export default function OperatorDialog({ open, onClose }) {
     "Hospital In Stitches",
     "Hospital The All Nighters",
   ];
-  const names = [
-    "Oliver Hansen",
-    "Van Henry",
-    "April Tucker",
-    "Ralph Hubbard",
-    "Omar Alexander",
-    "Carlos Abbott",
-    "Miriam Wagner",
-    "Bradley Wilkerson",
-    "Virginia Andrews",
-    "Kelly Snyder",
-  ];
+  const ambulances = ["Ambulance 1", "Ambulance 2 ", "Ambulance 3"];
+
+  const [value, setValue] = React.useState(hospitals[0]);
+  const [inputValue, setInputValue] = React.useState(" ");
+
+  const [value2, setValue2] = React.useState(names[0]);
+
+  const hosppRef = collection(db, "Hospitals");
+
+  const messageRef = collection(
+    db,
+    "Hospitals",
+    'Hospital "Final Destination"',
+    "Cases"
+  );
+
+  function Printme() {
+    {
+      onSnapshot(messageRef, (snapshot) =>
+        setNames(snapshot.docs.map((doc) => doc.data().name))
+      );
+    }
+  }
+
   const handleSelectGender = (event) => {
     setGender(event.target.value);
   };
@@ -78,69 +122,198 @@ export default function OperatorDialog({ open, onClose }) {
     setNhs(event.target.value);
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setPatientLoad({
+      ...patientLoad,
+      [name]: value,
+    });
+  };
+
   const [personName, setPersonName] = React.useState([]);
-  const handleChangeMultiple = (event) => {
-    const { options } = event.target;
-    const value = [];
-    for (let i = 0, l = options.length; i < l; i += 1) {
-      if (options[i].selected) {
-        value.push(options[i].value);
-      }
+
+  async function loadCasesFor(newInputValue) {
+    const path = `/Hospitals/${newInputValue}/Cases`;
+    const messageRef1 = collection(db, path);
+    const q = query(messageRef1, where("status", "==", "assigned"));
+    const querySnapshot = await getDocs(q);
+    if (querySnapshot.size == 0) {
+      setNames([]);
+    } else {
+      querySnapshot.forEach((doc) => {
+        // doc.data() is never undefined for query doc snapshots
+        // setNames(snapshot.docs.map((doc) => doc.id));
+        //console.log(doc.id, " => ", doc.data());
+        //  setNames(doc.id);
+        //setNames(snapshot.doc.map((doc) => doc.id));
+        setNames((names) => [...names, doc.id]);
+      });
+
+      console.log(names);
+      setValue2(casePatient.name[0]);
     }
-    setPersonName(value);
+  }
+
+  async function updateWaitingState(messageRef1) {
+    const q = query(messageRef1, where("status", "==", "waiting"));
+    const querySnapshot = await getDocs(q);
+    setWaiting(querySnapshot.size);
+    console.log(querySnapshot.size);
+  }
+
+  async function updateFreeState(newInputValue) {
+    const path = `/Hospitals/${newInputValue}/Ambulances`;
+    const ambulanceRef = collection(db, path);
+
+    const q = query(ambulanceRef, where("free", "==", true));
+    const q2 = query(ambulanceRef, where("free", "==", false));
+
+    const querySnapshot = await getDocs(q);
+    const querySnapshot2 = await getDocs(q2);
+
+    if (querySnapshot.size == 0 && querySnapshot2.size == 0) {
+      console.log("empty");
+      setFreeAmbulances("empty");
+    } else {
+      setFreeAmbulances(querySnapshot.size);
+      console.log(querySnapshot.size);
+    }
+  }
+
+  async function updateInfo() {
+    const docRef = doc(db, `/Hospitals/${inputValue}/Cases`, patientLoad.nhs);
+    // Set the "capital" field of the city 'DC'
+    await updateDoc(docRef, {
+      name: patientLoad.name,
+      condition: patientLoad.condition,
+      gender: patientLoad.gender,
+    });
+  }
+
+  async function disCharge() {
+    const docRef2 = doc(db, `/Hospitals/${inputValue}/Cases`, patientLoad.nhs);
+    await updateDoc(docRef2, {
+      name: patientLoad.name,
+      condition: patientLoad.condition,
+      gender: patientLoad.gender,
+      //information: patientLoad.information,
+      status: "hospitalised",
+    });
+    freeUpAmbulance();
+    // have to free up ambulance, state - free, case "" , if waiting > 0 assign first waiting
+  }
+
+  async function freeUpAmbulance() {
+    const ambulanceRef = collection(db, `/Hospitals/${inputValue}/Ambulances`);
+    const q = query(ambulanceRef, where("case", "==", patientLoad.nhs));
+    const querySnapshot = await getDocs(q);
+    const firstFree = querySnapshot.docs[0].id;
+    const ambulanceToFree = doc(
+      db,
+      `/Hospitals/${inputValue}/Ambulances`,
+      firstFree
+    );
+    await updateDoc(ambulanceToFree, {
+      free: true,
+      case: " ",
+    });
+    updateFreeState(inputValue);
+    setPatientLoad(patientInit);
+  }
+
+  async function loadPatientInfo(value2) {
+    const docRef = doc(db, `/Hospitals/${inputValue}/Cases`, value2);
+    console.log(docRef);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      console.log("Found!", docSnap.data().name);
+
+      setPatientLoad({
+        name: docSnap.data().name,
+        nhs: docSnap.data().nhs,
+        condition: docSnap.data().condition,
+        information: docSnap.data().information,
+        postcode: docSnap.data().postcode,
+        ambulance: docSnap.data().ambulance,
+        gender: docSnap.data().gender,
+        status: docSnap.data().status,
+      });
+      console.log(patientLoad);
+    } else {
+      // doc.data() will be undefined in this case
+      console.log("No such document!");
+    }
+  }
+
+  const [age, setAge] = React.useState("");
+
+  const handleChange = (event) => {
+    setAge(event.target.value);
   };
   return (
     <div>
       <Dialog open={open} onClose={onClose}>
-        <DialogTitle sx={{ m: 0, p: 1, textAlign: "center" }}>
+        <DialogTitle sx={{ mb: -2, p: 0, pt: 0.5, textAlign: "center" }}>
           Ambulance
         </DialogTitle>
         <DialogContent>
-          <Stack direction="row" justifyContent="space-around">
-            <p>Select Hospital</p>
-            <p>Select Ambulance</p>
-          </Stack>
-
-          <Stack direction="row" justifyContent="space-around">
-            <Select
-              sx={{ mr: 1 }}
-              multiple
-              native
-              value={personName}
-              // @ts-ignore Typings are not considering `native`
-              onChange={handleChangeMultiple}
-              inputProps={{
-                id: "select-multiple-native",
+          <Stack
+            direction="row"
+            justifyContent={"space-around"}
+            sx={{ mt: 2 }}
+          ></Stack>
+          <Autocomplete
+            id="controllable-states-demo"
+            disableClearable
+            value={value}
+            onChange={(event, newValue) => {
+              setValue(newValue);
+            }}
+            inputValue={inputValue}
+            onInputChange={(event, newInputValue) => {
+              setInputValue(newInputValue);
+              console.log(newInputValue);
+              loadCasesFor(newInputValue);
+              setPatient(" ");
+            }}
+            options={hospitals}
+            sx={{ py: 2 }}
+            renderInput={(params) => (
+              <TextField {...params} label="Select Hospital" />
+            )}
+          />
+          <Stack direction="row" justifyContent={"space-between"}>
+            <Autocomplete
+              disableClearable={names !== null}
+              id="combo-box-demo"
+              options={names}
+              value={patient}
+              onChange={(event, newValue) => {
+                setPatient(newValue);
+                setPatientLoad(patientInit);
               }}
-            >
-              {hospitals.map((hospitals) => (
-                <option key={hospitals} value={hospitals}>
-                  {hospitals}
-                </option>
-              ))}
-            </Select>
+              label="test"
+              disablePortal
+              sx={{ width: "68%" }}
+              renderInput={(params) => (
+                <TextField {...params} label="Select Case" />
+              )}
+            />
 
-            <ToggleButtonGroup
-              value={alignment}
-              exclusive
-              onChange={handleAlignment}
-              aria-label="text alignment"
+            <Button
+              onClick={() => loadPatientInfo(patient)}
+              variant="contained"
+              fullWidth="true"
+              sx={{ width: "30%" }}
             >
-              <ToggleButton value="left" aria-label="left aligned">
-                <img src={ambulance} className="amgif" alt="Ambulance" />
-              </ToggleButton>
-              <ToggleButton value="center" aria-label="centered">
-                <img src={ambulance} className="amgif" alt="Ambulance" />
-              </ToggleButton>
-              <ToggleButton value="right" aria-label="right aligned">
-                <img src={ambulance} className="amgif" alt="Ambulance" />
-              </ToggleButton>
-            </ToggleButtonGroup>
+              Load
+            </Button>
           </Stack>
-
-          <p style={{ margin: 0, padding: 5, textAlign: "center" }}>
+          {/* <p style={{ margin: 0, padding: 5, textAlign: "center" }}>
             Patient Information
-          </p>
+          </p> */}
+          <Divider sx={{ my: 1, pt: 1 }} />
 
           <Stack direction="row">
             <TextField
@@ -148,34 +321,19 @@ export default function OperatorDialog({ open, onClose }) {
               id="outlined-name"
               margin="dense"
               label="Name"
-              value={name}
-              onChange={handleNameInput}
-            />
-            <TextField
-              id="outlined-name"
-              margin="dense"
-              label="NHS Number"
-              value={nhs}
-              onChange={handleNhsInput}
-            />
-          </Stack>
-          <Stack direction="row">
-            <TextField
-              sx={{ pr: 1 }}
-              id="outlined-name"
-              margin="dense"
-              label="Postcode"
-              value={nhs}
-              onChange={handleNhsInput}
+              name={"name"}
+              value={patientLoad.name}
+              onChange={handleInputChange}
             />
             <FormControl margin="dense" fullWidth>
               <InputLabel id="demo-simple-select-label">Gender</InputLabel>
               <Select
                 labelId="demo-simple-select-label"
                 id="demo-simple-select"
-                value={gender}
+                value={patientLoad.gender}
                 label="Gender"
-                onChange={handleSelectGender}
+                name={"gender"}
+                onChange={handleInputChange}
               >
                 <MenuItem value={"Male"}>Male</MenuItem>
                 <MenuItem value={"Felmale"}>Female</MenuItem>
@@ -192,37 +350,78 @@ export default function OperatorDialog({ open, onClose }) {
               </Select>
             </FormControl>
           </Stack>
-
+          <Stack direction="row">
+            <TextField
+              sx={{ pr: 1, width: "50%" }}
+              id="outlined-name"
+              margin="dense"
+              label="NHS Number"
+              InputProps={{
+                readOnly: true,
+              }}
+              name={"nhs"}
+              value={patientLoad.nhs}
+            />{" "}
+            <TextField
+              id="outlined-name"
+              margin="dense"
+              name={"postcode"}
+              InputProps={{
+                readOnly: true,
+              }}
+              label="Postcode"
+              value={patientLoad.postcode}
+            />
+            <TextField
+              sx={{ ml: 1 }}
+              id="outlined-status"
+              margin="dense"
+              label="Status"
+              name={"status"}
+              value={patientLoad.status}
+              onChange={handleInputChange}
+              InputProps={{
+                readOnly: true,
+              }}
+            />
+          </Stack>
           <TextField
             id="outlined-name"
             fullWidth
             margin="dense"
             label="Medical Condition"
-            value={nhs}
+            value={patientLoad.condition}
+            name={"condition"}
             multiline
             rows={2}
-            onChange={handleNhsInput}
+            onChange={handleInputChange}
           />
           <TextField
             id="outlined-name"
             fullWidth
             margin="dense"
-            label="Additional Info"
-            value={
-              "Who: What: When: Where: Action Taken: Lenght of time spend on the call:"
-            }
-            multiline
-            rows={2}
-            onChange={handleNhsInput}
+            label="Additonal Information"
+            value={patientLoad.information}
+            name={"information"}
+            onChange={handleInputChange}
           />
         </DialogContent>
         <DialogActions sx={{ mt: -2, pb: 1, justifyContent: "center" }}>
-          <FormControlLabel
+          {/* <FormControlLabel
             control={<Checkbox defaultChecked />}
             label="Patient is not dead"
-          />
-          <Button onClick={onClose}>Abort</Button>
-          <Button onClick={onClose}>Update</Button>
+          /> */}
+          <Button variant="contained" onClick={onClose}>
+            Close
+          </Button>
+
+          <Button variant="contained" onClick={disCharge}>
+            Hospitalise
+          </Button>
+
+          <Button variant="contained" onClick={updateInfo}>
+            Update
+          </Button>
         </DialogActions>
       </Dialog>
     </div>

@@ -37,13 +37,13 @@ export default function OperatorDialog({ open, onClose }) {
   };
 
   const patientDataInit = {
+    status: "",
     name: "",
     nhs: "",
     postcode: "",
     gender: "",
     condition: "",
-    inofrmation: "",
-    ambulance: "",
+    information: "",
   };
 
   const ambulanceInit = {
@@ -52,10 +52,10 @@ export default function OperatorDialog({ open, onClose }) {
   };
 
   const casesRef = collection(db, "Patients");
-  const hospRefFinal = doc(db, "Hospitals", "Hospital Final Destination");
-  const hospRefStich = doc(db, "Hospitals", "Hospital In Stitches");
-  const hospRefAll = doc(db, "Hospitals", "Hospital The All Nighters");
-
+  const hospRefFinal = doc(db, "Hospitals", "Hospital Final Destination"); // postcode -2
+  const hospRefStich = doc(db, "Hospitals", "Hospital In Stitches"); //postcode - 1
+  const hospRefAll = doc(db, "Hospitals", "Hospital The All Nighters"); // poscode - 3
+  const [assignedHospital, setAssignedHospital] = useState("");
   const [patientData, setPatientData] = useState(patientDataInit);
 
   const handleInputChange = (e) => {
@@ -66,9 +66,28 @@ export default function OperatorDialog({ open, onClose }) {
     });
   };
 
+  useEffect(() => {
+    if (patientData.postcode === "3") {
+      writeToDb(hospRefAll);
+      setAssignedHospital("Hospital The All Nighters");
+      console.log("Writing");
+    }
+    if (patientData.postcode === "2") {
+      writeToDb(hospRefFinal);
+      setAssignedHospital("Hospital Final Destination");
+      console.log("Writing");
+    }
+    if (patientData.postcode === "1") {
+      writeToDb(hospRefStich);
+      setAssignedHospital("Hospital In Stitches");
+      console.log("Writing");
+    }
+  }, [patientData.status]);
+
   var numberOfAmbulances = 3; //just change the var to alter the number of ambulances
+
   async function addAmbulances(collection3) {
-    const docRef = doc(collection3, "Ambulances", "Ambulance1");
+    const docRef = doc(collection3, "Ambulances", "Ambulance1"); //trying to get ambulance 1
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
@@ -77,7 +96,7 @@ export default function OperatorDialog({ open, onClose }) {
       console.log("Creating Ambulances");
       for (let i = 1; i <= numberOfAmbulances; i++) {
         await setDoc(
-          doc(collection, "Ambulances", `Ambulance${i}`),
+          doc(collection3, "Ambulances", `Ambulance${i}`),
           ambulanceInit
         );
       }
@@ -88,24 +107,29 @@ export default function OperatorDialog({ open, onClose }) {
     const q = query(casesRef, where("free", "==", true));
 
     const querySnapshot = await getDocs(q);
+
     if (querySnapshot.empty) {
-      console.log("No ambulances avaliable.");
       setPatientData({
         ...patientData,
-        ambulance: "waiting",
+        status: "waiting",
       });
+      console.log(patientData);
+      console.log("No ambulances avaliable.");
     } else {
+      const assigned = "assigned";
+      setPatientData({
+        ...patientData,
+        status: assigned,
+      });
       console.log("Ambulances free:", querySnapshot.size);
       const firstFree = querySnapshot.docs[0].id;
       console.log("first free:", firstFree);
+
+      console.log(patientData);
       const ambulanceToAssign = doc(collection3, "Ambulances", firstFree);
       await updateDoc(ambulanceToAssign, {
         free: false,
         case: patientData.nhs,
-      });
-      setPatientData({
-        ...patientData,
-        ambulance: "assigned",
       });
     }
   }
@@ -116,27 +140,44 @@ export default function OperatorDialog({ open, onClose }) {
     const nhsNumber = patientData.nhs;
 
     if (patientData.postcode === "3") {
-      addAmbulances(hospRefAll);
-      await setDoc(doc(hospRefAll, "Cases", nhsNumber), patientData);
+      await addAmbulances(hospRefAll);
+      //await writeToDb(hospRefAll);
 
       //assignAmbulance(hospRefAll, nhsNumber);
     }
     if (patientData.postcode === "2") {
-      addAmbulances(hospRefFinal);
-      await setDoc(doc(hospRefFinal, "Cases", nhsNumber), patientData);
+      setAssignedHospital("Hospital Final Destination");
+      await addAmbulances(hospRefFinal);
+      //await writeToDb(hospRefFinal);
+
+      //writeToDb(hospRefFinal);
+      //await setDoc(doc(hospRefFinal, "Cases", nhsNumber), patientData);
     }
     if (patientData.postcode === "1") {
-      addAmbulances(hospRefStich);
-      await setDoc(doc(hospRefStich, "Cases", nhsNumber), patientData);
+      setAssignedHospital("Hospital In Stitches");
+      await addAmbulances(hospRefStich);
+      //await writeToDb(hospRefStich);
+
+      //writeToDb(hospRefStich);
+      //await setDoc(doc(hospRefStich, "Cases", nhsNumber), patientData);
     }
 
-    console.log(patientData);
-    await addDoc(casesRef, patientData);
-    alert(
-      "Request recived. Ambulance is coming ASAP. State:",
-      patientData.ambulance
-    );
-    setPatientData(patientDataInit);
+    //console.log(patientData);
+    await setDoc(doc(db, "Patients", patientData.nhs), patientData);
+  }
+
+  async function writeToDb(hospDb) {
+    await setDoc(doc(hospDb, "Cases", patientData.nhs), patientData);
+  }
+  async function report(event) {
+    await formSubmit(event);
+    alert("Patient assigned to: " + assignedHospital);
+
+    //console.log(patientData);
+    //setPatientData(patientDataInit);
+    //console.log(patientData);
+
+    //window.location.reload();
   }
 
   return (
@@ -144,7 +185,7 @@ export default function OperatorDialog({ open, onClose }) {
       <img src={babi} className="babi" alt="Ambulance" />
 
       <Dialog open={open} onClose={onClose}>
-        <form onSubmit={formSubmit}>
+        <form onSubmit={report}>
           <DialogTitle sx={{ m: 0, p: 1, textAlign: "center" }}>
             Operator
           </DialogTitle>
@@ -160,6 +201,7 @@ export default function OperatorDialog({ open, onClose }) {
                 onChange={handleInputChange}
               />
               <TextField
+                required
                 id="outlined-name"
                 margin="dense"
                 label="NHS Number"
@@ -179,7 +221,7 @@ export default function OperatorDialog({ open, onClose }) {
                 value={patientData.postcode}
                 onChange={handleInputChange}
               />
-              <FormControl margin="dense" fullWidth>
+              <FormControl margin="dense" sx={{ width: "70%" }}>
                 <InputLabel id="demo-simple-select-label">Gender</InputLabel>
                 <Select
                   labelId="demo-simple-select-label"
