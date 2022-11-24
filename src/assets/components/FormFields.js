@@ -10,12 +10,10 @@ import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
 
 export default function FormFields({ setCaseInfo, caseInfo }) {
-  const [loadCaseResponse, setLoadCaseResponse] = React.useState({});
   const [patientInit, setPatientInit] = React.useState({
     name: " ",
     gender: " ",
     condition: " ",
-    information: " ",
     nhs: " ",
     postcode: " ",
     ambulance: " ",
@@ -116,20 +114,11 @@ export default function FormFields({ setCaseInfo, caseInfo }) {
         id="outlined-name"
         fullWidth
         margin="dense"
-        label="Medical Condition"
+        label="Condition and Infromation"
         value={caseInfo.condition}
         name={"condition"}
         multiline
         rows={2}
-        onChange={handleInputChange}
-      />
-      <TextField
-        id="outlined-name"
-        fullWidth
-        margin="dense"
-        label="Additonal Information"
-        value={caseInfo.information}
-        name={"information"}
         onChange={handleInputChange}
       />
     </div>

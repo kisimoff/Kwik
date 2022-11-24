@@ -46,8 +46,6 @@ export default function OperatorDialog({ open, onClose }) {
   const hospRefFinal = doc(db, "Hospitals", "Hospital Final Destination"); // postcode -2
   const hospRefAll = doc(db, "Hospitals", "Hospital The All Nighters"); // poscode - 3
   const [assignedHospital, setAssignedHospital] = useState("");
-  const [checkButton, setCheckButton] = useState("Check Case");
-
   const [patientData, setPatientData] = useState(patientDataInit);
 
   const handleInputChange = (e) => {
@@ -125,33 +123,10 @@ export default function OperatorDialog({ open, onClose }) {
     }
   }
 
-  async function checkPatient() {
-    const docRef = doc(db, "Patients", patientData.nhs);
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
-      setPatientData({
-        name: docSnap.data().name,
-        nhs: docSnap.data().nhs,
-        condition: docSnap.data().condition,
-        information: docSnap.data().information,
-        postcode: docSnap.data().postcode,
-        ambulance: " ",
-        gender: docSnap.data().gender,
-        status: " ",
-      });
-      setCheckButton("Case Found!");
-    } else {
-      setCheckButton("Not Found!");
-      console.log("No such document!");
-    }
-  }
-
   async function formSubmit(event) {
     event.preventDefault();
 
     if (patientData.postcode === "3") {
-      setAssignedHospital("Hospital The All Nighters");
       await addAmbulances(hospRefAll);
     }
     if (patientData.postcode === "2") {
@@ -162,15 +137,16 @@ export default function OperatorDialog({ open, onClose }) {
       setAssignedHospital("Hospital In Stitches");
       await addAmbulances(hospRefStich);
     }
+
     await setDoc(doc(db, "Patients", patientData.nhs), patientData);
   }
 
   async function writeToDb(hospDb) {
     await setDoc(doc(hospDb, "Cases", patientData.nhs), patientData);
   }
-  function report(event) {
-    formSubmit(event);
-    setPatientData(patientDataInit);
+  async function report(event) {
+    await formSubmit(event);
+    alert("Patient assigned to: " + assignedHospital);
   }
 
   return (
@@ -181,45 +157,9 @@ export default function OperatorDialog({ open, onClose }) {
             Operator
           </DialogTitle>
           <DialogContent>
-            <Stack direction="row" justifyContent="space-between">
-              <TextField
-                sx={{ width: "70%" }}
-                required
-                id="outlined-name"
-                margin="dense"
-                label="NHS Number"
-                name="nhs"
-                value={patientData.nhs}
-                onChange={handleInputChange}
-                InputProps={{
-                  endAdornment: (
-                    <Button
-                      onClick={() => {
-                        checkPatient();
-                      }}
-                      variant="contained"
-                      size="small"
-                      sx={{ width: "50%" }}
-                    >
-                      {checkButton}
-                    </Button>
-                  ),
-                }}
-              />{" "}
-              <TextField
-                sx={{ width: "29%" }}
-                id="outlined-name"
-                margin="dense"
-                label="Postcode"
-                name="postcode"
-                value={patientData.postcode}
-                onChange={handleInputChange}
-              />
-            </Stack>
-
             <Stack direction="row">
               <TextField
-                sx={{ pr: 1, width: "50%" }}
+                sx={{ pr: 1 }}
                 id="outlined-name"
                 margin="dense"
                 label="Name"
@@ -227,8 +167,28 @@ export default function OperatorDialog({ open, onClose }) {
                 value={patientData.name}
                 onChange={handleInputChange}
               />
+              <TextField
+                required
+                id="outlined-name"
+                margin="dense"
+                label="NHS Number"
+                name="nhs"
+                value={patientData.nhs}
+                onChange={handleInputChange}
+              />
+            </Stack>
 
-              <FormControl margin="dense" sx={{ width: "50%" }}>
+            <Stack direction="row">
+              <TextField
+                sx={{ pr: 1 }}
+                id="outlined-name"
+                margin="dense"
+                label="Postcode"
+                name="postcode"
+                value={patientData.postcode}
+                onChange={handleInputChange}
+              />
+              <FormControl margin="dense" sx={{ width: "70%" }}>
                 <InputLabel id="demo-simple-select-label">Gender</InputLabel>
                 <Select
                   labelId="demo-simple-select-label"
@@ -258,9 +218,20 @@ export default function OperatorDialog({ open, onClose }) {
               id="outlined-name"
               fullWidth
               margin="dense"
-              label="Condition and Information"
+              label="Medical Condition"
               name="condition"
               value={patientData.condition}
+              multiline
+              rows={2}
+              onChange={handleInputChange}
+            />
+            <TextField
+              id="outlined-name"
+              fullWidth
+              margin="dense"
+              label="Additional Infromation"
+              name="infromation"
+              value={patientData.information}
               multiline
               rows={2}
               onChange={handleInputChange}
@@ -272,14 +243,8 @@ export default function OperatorDialog({ open, onClose }) {
               control={<Checkbox defaultChecked />}
               label="Patient is not dead"
             />
-            <Button variant="contained" onClick={onClose}>
-              Close
-            </Button>
-            <Button
-              variant="contained"
-              type="submit"
-              onClick={() => alert("submitted!")}
-            >
+            <Button onClick={onClose}>Abort</Button>
+            <Button type="submit" onClick={onClose}>
               Submit
             </Button>
           </DialogActions>

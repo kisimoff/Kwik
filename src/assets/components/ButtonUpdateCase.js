@@ -4,6 +4,8 @@ import { db } from "../../firebase.js";
 import { doc, updateDoc } from "firebase/firestore";
 
 export default function ButtonUpdateCase({ caseInfo, hospital }) {
+  const [updateText, setUpdateText] = React.useState("Update");
+
   async function updateCaseInfo() {
     const docRef = doc(db, `/Hospitals/${hospital}/Cases`, caseInfo.nhs);
     // Set the "capital" field of the city 'DC'
@@ -12,12 +14,13 @@ export default function ButtonUpdateCase({ caseInfo, hospital }) {
       condition: caseInfo.condition,
       gender: caseInfo.gender,
     });
+    setUpdateText("Updated!");
   }
 
   return (
     <div>
       <Button variant="contained" onClick={updateCaseInfo}>
-        Update
+        {updateText}
       </Button>
     </div>
   );

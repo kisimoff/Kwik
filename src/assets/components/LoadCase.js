@@ -8,7 +8,6 @@ import { db } from "../../firebase.js";
 import {
   collection,
   doc,
-  setDoc,
   getDoc,
   getDocs,
   query,
@@ -28,7 +27,6 @@ export default function LoadCase({
   const [patientInit] = React.useState({
     name: " ",
     condition: " ",
-    information: " ",
     nhs: " ",
     postcode: " ",
     ambulance: " ",
@@ -43,6 +41,7 @@ export default function LoadCase({
   ];
 
   async function loadCasesFor(newInputValue) {
+    setCases([]);
     const path = `/Hospitals/${newInputValue}/Cases`;
     const messageRef1 = collection(db, path);
     if (isAssigned) {
@@ -73,7 +72,6 @@ export default function LoadCase({
         name: docSnap.data().name,
         nhs: docSnap.data().nhs,
         condition: docSnap.data().condition,
-        information: docSnap.data().information,
         postcode: docSnap.data().postcode,
         ambulance: docSnap.data().ambulance,
         gender: docSnap.data().gender,
