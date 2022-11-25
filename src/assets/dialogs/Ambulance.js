@@ -43,7 +43,13 @@ export default function OperatorDialog({ open, onClose }) {
             caseInfo={caseInfo}
           ></FormFields>
         </DialogContent>
-        <DialogActions sx={{ mt: -2, pb: 1, justifyContent: "center" }}>
+        <DialogActions
+          sx={{
+            p: 1,
+            justifyContent: "center",
+            flexWrap: "wrap-reverse",
+          }}
+        >
           <Button variant="contained" onClick={onClose} sx={{ m: 1 }}>
             Close
           </Button>

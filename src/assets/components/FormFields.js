@@ -49,32 +49,44 @@ export default function FormFields({ setCaseInfo, caseInfo }) {
           value={caseInfo.name}
           onChange={handleInputChange}
         />
-        <FormControl margin="dense" sx={{ width: "40%" }}>
-          <InputLabel id="demo-simple-select-label">Gender</InputLabel>
-          <Select
-            labelId="demo-simple-select-label"
-            id="demo-simple-select"
-            value={caseInfo.gender}
-            label="Gender"
-            name={"gender"}
-            onChange={handleInputChange}
-          >
-            <MenuItem value={"Male"}>Male</MenuItem>
-            <MenuItem value={"Empty"}>Empty</MenuItem>
-            <MenuItem value={"Felmale"}>Female</MenuItem>
-            <MenuItem value={"Agender"}>Agender</MenuItem>
-            <MenuItem value={"Bigender"}>Bigender</MenuItem>
-            <MenuItem value={"Cisgender"}>Cisgender</MenuItem>
-            <MenuItem value={"Gender Fluid"}>Gender Fluid</MenuItem>
-            <MenuItem value={"Genderqueer"}>Genderqueer</MenuItem>
-            <MenuItem value={"Gender Variant"}>Gender Variant</MenuItem>
-            <MenuItem value={"Non-Binary"}>Non-Binary</MenuItem>
-            <MenuItem value={"Third Gender"}>Third Gender</MenuItem>
-            <MenuItem value={"Transgender"}>Transgender</MenuItem>
-            <MenuItem value={"UFO"}>UFO</MenuItem>
-          </Select>
-        </FormControl>
+
+        <TextField
+          sx={{ width: "40%" }}
+          id="outlined-name"
+          margin="dense"
+          name={"postcode"}
+          InputProps={{
+            readOnly: true,
+          }}
+          label="Postcode"
+          value={caseInfo.postcode}
+        />
       </Stack>
+      <FormControl margin="dense" sx={{ width: "100%" }}>
+        <InputLabel id="demo-simple-select-label">Gender</InputLabel>
+        <Select
+          labelId="demo-simple-select-label"
+          id="demo-simple-select"
+          value={caseInfo.gender}
+          label="Gender"
+          name={"gender"}
+          onChange={handleInputChange}
+        >
+          <MenuItem value={"Male"}>Male</MenuItem>
+          <MenuItem value={"Empty"}>Empty</MenuItem>
+          <MenuItem value={"Felmale"}>Female</MenuItem>
+          <MenuItem value={"Agender"}>Agender</MenuItem>
+          <MenuItem value={"Bigender"}>Bigender</MenuItem>
+          <MenuItem value={"Cisgender"}>Cisgender</MenuItem>
+          <MenuItem value={"Gender Fluid"}>Gender Fluid</MenuItem>
+          <MenuItem value={"Genderqueer"}>Genderqueer</MenuItem>
+          <MenuItem value={"Gender Variant"}>Gender Variant</MenuItem>
+          <MenuItem value={"Non-Binary"}>Non-Binary</MenuItem>
+          <MenuItem value={"Third Gender"}>Third Gender</MenuItem>
+          <MenuItem value={"Transgender"}>Transgender</MenuItem>
+          <MenuItem value={"UFO"}>UFO</MenuItem>
+        </Select>
+      </FormControl>
       <Stack direction="row">
         <TextField
           sx={{ pr: 1, width: "50%" }}
@@ -88,17 +100,7 @@ export default function FormFields({ setCaseInfo, caseInfo }) {
           value={caseInfo.nhs}
         />{" "}
         <TextField
-          id="outlined-name"
-          margin="dense"
-          name={"postcode"}
-          InputProps={{
-            readOnly: true,
-          }}
-          label="Postcode"
-          value={caseInfo.postcode}
-        />
-        <TextField
-          sx={{ ml: 1 }}
+          sx={{ width: "50%" }}
           id="outlined-status"
           margin="dense"
           label="Status"

@@ -46,7 +46,7 @@ export default function OperatorDialog({ open, onClose }) {
   const hospRefFinal = doc(db, "Hospitals", "Hospital Final Destination"); // postcode -2
   const hospRefAll = doc(db, "Hospitals", "Hospital The All Nighters"); // poscode - 3
   const [assignedHospital, setAssignedHospital] = useState("");
-  const [checkButton, setCheckButton] = useState("Check Case");
+  const [checkButton, setCheckButton] = useState("Query");
 
   const [patientData, setPatientData] = useState(patientDataInit);
 
@@ -140,9 +140,9 @@ export default function OperatorDialog({ open, onClose }) {
         gender: docSnap.data().gender,
         status: " ",
       });
-      setCheckButton("Case Found!");
+      setCheckButton("Found");
     } else {
-      setCheckButton("Not Found!");
+      setCheckButton("Empty");
       console.log("No such document!");
     }
   }
@@ -183,12 +183,15 @@ export default function OperatorDialog({ open, onClose }) {
           <DialogContent>
             <Stack direction="row" justifyContent="space-between">
               <TextField
-                sx={{ width: "70%" }}
+                sx={{ width: "70%", pr: "1" }}
                 required
                 id="outlined-name"
                 margin="dense"
                 label="NHS Number"
                 name="nhs"
+                InputLabelProps={{
+                  shrink: true,
+                }}
                 value={patientData.nhs}
                 onChange={handleInputChange}
                 InputProps={{
@@ -199,7 +202,7 @@ export default function OperatorDialog({ open, onClose }) {
                       }}
                       variant="contained"
                       size="small"
-                      sx={{ width: "50%" }}
+                      sx={{ width: "20%" }}
                     >
                       {checkButton}
                     </Button>
@@ -210,6 +213,9 @@ export default function OperatorDialog({ open, onClose }) {
                 sx={{ width: "29%" }}
                 id="outlined-name"
                 margin="dense"
+                InputLabelProps={{
+                  shrink: true,
+                }}
                 label="Postcode"
                 name="postcode"
                 value={patientData.postcode}
@@ -268,10 +274,6 @@ export default function OperatorDialog({ open, onClose }) {
           </DialogContent>
 
           <DialogActions sx={{ mt: -2, pb: 1, justifyContent: "center" }}>
-            <FormControlLabel
-              control={<Checkbox defaultChecked />}
-              label="Patient is not dead"
-            />
             <Button variant="contained" onClick={onClose}>
               Close
             </Button>

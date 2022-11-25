@@ -35,9 +35,7 @@ export default function OperatorDialog({ open, onClose }) {
   return (
     <div>
       <Dialog open={open} onClose={onClose}>
-        <DialogTitle sx={{ mb: -2, p: 0, pt: 0.5, textAlign: "center" }}>
-          Hospital
-        </DialogTitle>
+        <DialogTitle sx={{ p: 0, textAlign: "center" }}>Hospital</DialogTitle>
         <DialogContent>
           <LoadCase
             setLoadedHospital={setLoadedHospital}
@@ -50,7 +48,13 @@ export default function OperatorDialog({ open, onClose }) {
             caseInfo={caseInfo}
           ></FormFields>
         </DialogContent>
-        <DialogActions sx={{ mt: -2, pb: 1, justifyContent: "center" }}>
+        <DialogActions
+          sx={{
+            pb: 1,
+            justifyContent: "center",
+            flexWrap: "wrap-reverse",
+          }}
+        >
           <Button variant="contained" onClick={onClose} sx={{ m: 1 }}>
             Close
           </Button>
