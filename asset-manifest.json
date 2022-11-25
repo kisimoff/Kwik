@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/Kwik/static/css/main.b2bc2154.css",
-    "main.js": "/Kwik/static/js/main.99b8035f.js",
+    "main.js": "/Kwik/static/js/main.f634b853.js",
     "static/js/787.d1f1c92d.chunk.js": "/Kwik/static/js/787.d1f1c92d.chunk.js",
     "static/media/operator.svg": "/Kwik/static/media/operator.e617bae8ba7ba042223462e39ecfd439.svg",
     "static/media/ambulance.svg": "/Kwik/static/media/ambulance.5811121c8b82e67aeb9a72df030a1042.svg",
@@ -9,11 +9,11 @@
     "static/media/ambulanceRotate.svg": "/Kwik/static/media/ambulanceRotate.bb4c2540b8ea4782d0e71174363ec4ea.svg",
     "index.html": "/Kwik/index.html",
     "main.b2bc2154.css.map": "/Kwik/static/css/main.b2bc2154.css.map",
-    "main.99b8035f.js.map": "/Kwik/static/js/main.99b8035f.js.map",
+    "main.f634b853.js.map": "/Kwik/static/js/main.f634b853.js.map",
     "787.d1f1c92d.chunk.js.map": "/Kwik/static/js/787.d1f1c92d.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.b2bc2154.css",
-    "static/js/main.99b8035f.js"
+    "static/js/main.f634b853.js"
   ]
 }
