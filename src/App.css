@@ -9,7 +9,7 @@
   background-color: var(--back);
 }
 .role {
-  width: 4vmin;
+  width: 12vmin;
 }
 .App-logo {
   pointer-events: none;
@@ -25,7 +25,13 @@
   align-items: center;
   justify-content: center;
 }
-
+.text-role {
+  color: rgb(255, 255, 255);
+  padding: 0;
+  margin: 0;
+  margin-top: 8px;
+  font-size: 10px;
+}
 .roleText {
   color: rgb(250, 250, 250);
   font-size: 20px;
@@ -91,7 +97,7 @@
 
   .babi {
     width: 24vmin;
-    padding: 1vmin;
+    margin: 10vmin;
     transition: transform 12s; /* Animation */
     z-index: 99;
   }

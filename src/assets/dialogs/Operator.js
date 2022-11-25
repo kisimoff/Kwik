@@ -58,21 +58,25 @@ export default function OperatorDialog({ open, onClose }) {
     });
   };
 
+  //had trouble syncronising the async functions, thats the only working scenario to assing status to each patient. To be improved
   useEffect(() => {
     if (patientData.postcode === "3") {
       writeToDb(hospRefAll);
       setAssignedHospital("Hospital The All Nighters");
       console.log("Writing");
+      setPatientData(patientDataInit);
     }
     if (patientData.postcode === "2") {
       writeToDb(hospRefFinal);
       setAssignedHospital("Hospital Final Destination");
       console.log("Writing");
+      setPatientData(patientDataInit);
     }
     if (patientData.postcode === "1") {
       writeToDb(hospRefStich);
       setAssignedHospital("Hospital In Stitches");
       console.log("Writing");
+      setPatientData(patientDataInit);
     }
   }, [patientData.status]);
 
@@ -170,7 +174,6 @@ export default function OperatorDialog({ open, onClose }) {
   }
   function report(event) {
     formSubmit(event);
-    setPatientData(patientDataInit);
   }
 
   return (

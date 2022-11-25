@@ -11,6 +11,7 @@ import OperatorDialog from "./assets/dialogs/Operator.js";
 import HospitalDialog from "./assets/dialogs/Hospital.js";
 import AmblanceDialog from "./assets/dialogs/Ambulance.js";
 import babi from "./assets/media/babi.jpg";
+import { Stack } from "@mui/system";
 
 function App() {
   const [isOperator, setIsOperator] = useState(false);
@@ -29,33 +30,55 @@ function App() {
 
       <div>
         <p className="roleText">Choose yer role below:</p>
-        <ButtonGroup
-          variant="contained"
-          aria-label="outlined primary button group"
-        >
+        <Stack direction="row" justifyContent="center" spacing={2}>
           <Button
             onClick={() => {
               setIsOperator(true);
             }}
+            variant="contained"
           >
-            <img src={operator} className="role" alt="operator" />
+            <Stack
+              direction="column"
+              justifyContent="center"
+              alignItems="center"
+            >
+              <img src={operator} className="role" alt="operator" />
+              <p class="text-role">Operator</p>
+            </Stack>
           </Button>
           <Button
             onClick={() => {
               setIsHospital(true);
             }}
+            variant="contained"
           >
-            <img src={hospital} className="role" alt="hospital" />
+            <Stack
+              direction="column"
+              justifyContent="center"
+              alignItems="center"
+            >
+              <img src={hospital} className="role" alt="hospital" />
+              <p class="text-role">Hospital</p>
+            </Stack>
           </Button>
           <Button
             onClick={() => {
               setIsAmbulance(true);
             }}
+            variant="contained"
           >
-            <img src={ambulance} className="role" alt="ambulance" />
+            <Stack
+              direction="column"
+              justifyContent="center"
+              alignItems="center"
+            >
+              <img src={ambulance} className="role" alt="ambulance" />
+              <p class="text-role">Ambulance</p>
+            </Stack>
           </Button>
-        </ButtonGroup>
+        </Stack>
       </div>
+
       <img src={babi} className="babi" alt="Ambulance" />
 
       <OperatorDialog
