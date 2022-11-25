@@ -47,6 +47,7 @@ export default function OperatorDialog({ open, onClose }) {
   const hospRefAll = doc(db, "Hospitals", "Hospital The All Nighters"); // poscode - 3
   const [assignedHospital, setAssignedHospital] = useState("");
   const [checkButton, setCheckButton] = useState("Query");
+  const [switchOn, setSwitchOn] = useState(true);
 
   const [patientData, setPatientData] = useState(patientDataInit);
 
@@ -60,22 +61,26 @@ export default function OperatorDialog({ open, onClose }) {
 
   //had trouble syncronising the async functions, thats the only working scenario to assing status to each patient. To be improved
   useEffect(() => {
-    if (patientData.postcode === "3") {
-      writeToDb(hospRefAll);
-      setAssignedHospital("Hospital The All Nighters");
-      console.log("Writing");
-      setPatientData(patientDataInit);
-    }
-    if (patientData.postcode === "2") {
-      writeToDb(hospRefFinal);
-      setAssignedHospital("Hospital Final Destination");
-      console.log("Writing");
-      setPatientData(patientDataInit);
-    }
-    if (patientData.postcode === "1") {
-      writeToDb(hospRefStich);
-      setAssignedHospital("Hospital In Stitches");
-      console.log("Writing");
+    if (switchOn) {
+      if (patientData.postcode === "3") {
+        writeToDb(hospRefAll);
+        setAssignedHospital("Hospital The All Nighters");
+        console.log("Writing");
+        setPatientData(patientDataInit);
+      }
+      if (patientData.postcode === "2") {
+        writeToDb(hospRefFinal);
+        setAssignedHospital("Hospital Final Destination");
+        console.log("Writing");
+        setPatientData(patientDataInit);
+      }
+      if (patientData.postcode === "1") {
+        writeToDb(hospRefStich);
+        setAssignedHospital("Hospital In Stitches");
+        console.log("Writing");
+        setPatientData(patientDataInit);
+      }
+      setSwitchOn(false);
       setPatientData(patientDataInit);
     }
   }, [patientData.status]);
@@ -174,6 +179,7 @@ export default function OperatorDialog({ open, onClose }) {
   }
   function report(event) {
     formSubmit(event);
+    setSwitchOn(true);
   }
 
   return (
