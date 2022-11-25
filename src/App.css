@@ -92,16 +92,6 @@
     animation-timing-function: ease;
   }
 
-  .babi {
-    width: 24vmin;
-    margin: 10vmin;
-    transition: transform 12s; /* Animation */
-    z-index: 99;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    bottom: 10%;
-  }
   .background {
     width: 100px;
     height: 100px;
