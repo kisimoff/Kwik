@@ -3,11 +3,6 @@
   --white: #c1c8d6;
 }
 
-.App {
-  text-align: center;
-  min-height: 100vh;
-  background-color: var(--back);
-}
 .role {
   width: 12vmin;
 }
@@ -38,9 +33,11 @@
   padding: 10px;
   margin: 0;
 }
+.stackIcons {
+  margin-top: 100px;
+}
 
 .App-header {
-  background-color: var(--back);
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -100,6 +97,14 @@
     margin: 10vmin;
     transition: transform 12s; /* Animation */
     z-index: 99;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    bottom: 10%;
+  }
+  .background {
+    width: 100px;
+    height: 100px;
   }
 
   .amgif {

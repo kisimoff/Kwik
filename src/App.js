@@ -13,6 +13,8 @@ import AmblanceDialog from "./assets/dialogs/Ambulance.js";
 import babi from "./assets/media/babi.jpg";
 import { Stack } from "@mui/system";
 
+import Particles from "./assets/components/Particles";
+
 function App() {
   const [isOperator, setIsOperator] = useState(false);
   const [isHospital, setIsHospital] = useState(false);
@@ -29,8 +31,14 @@ function App() {
       </header>
 
       <div>
-        <p className="roleText">Choose yer role below:</p>
-        <Stack direction="row" justifyContent="center" spacing={2}>
+        <Particles />
+
+        <Stack
+          className="stackIcons"
+          direction="row"
+          justifyContent="center"
+          spacing={2}
+        >
           <Button
             onClick={() => {
               setIsOperator(true);
@@ -78,8 +86,6 @@ function App() {
           </Button>
         </Stack>
       </div>
-
-      <img src={babi} className="babi" alt="Ambulance" />
 
       <OperatorDialog
         open={isOperator}
