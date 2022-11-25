@@ -1,19 +1,19 @@
 {
   "files": {
-    "main.css": "/Kwik/static/css/main.c2872326.css",
-    "main.js": "/Kwik/static/js/main.09509b19.js",
+    "main.css": "/Kwik/static/css/main.8ca8d452.css",
+    "main.js": "/Kwik/static/js/main.51182780.js",
     "static/js/787.d1f1c92d.chunk.js": "/Kwik/static/js/787.d1f1c92d.chunk.js",
     "static/media/operator.svg": "/Kwik/static/media/operator.e617bae8ba7ba042223462e39ecfd439.svg",
     "static/media/ambulance.svg": "/Kwik/static/media/ambulance.5811121c8b82e67aeb9a72df030a1042.svg",
     "static/media/hospital.svg": "/Kwik/static/media/hospital.cdb09795f8fc6a405db5747be5eebe1b.svg",
     "static/media/ambulanceRotate.svg": "/Kwik/static/media/ambulanceRotate.bb4c2540b8ea4782d0e71174363ec4ea.svg",
     "index.html": "/Kwik/index.html",
-    "main.c2872326.css.map": "/Kwik/static/css/main.c2872326.css.map",
-    "main.09509b19.js.map": "/Kwik/static/js/main.09509b19.js.map",
+    "main.8ca8d452.css.map": "/Kwik/static/css/main.8ca8d452.css.map",
+    "main.51182780.js.map": "/Kwik/static/js/main.51182780.js.map",
     "787.d1f1c92d.chunk.js.map": "/Kwik/static/js/787.d1f1c92d.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.c2872326.css",
-    "static/js/main.09509b19.js"
+    "static/css/main.8ca8d452.css",
+    "static/js/main.51182780.js"
   ]
 }
