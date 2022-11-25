@@ -85,6 +85,16 @@ function App() {
             </Stack>
           </Button>
         </Stack>
+        <div className="whatisthis">
+          <Button
+            onClick={() =>
+              window.open("https://github.com/vtwenty3/Kwik", "_blank")
+            }
+            variant="outlined"
+          >
+            What is this?
+          </Button>
+        </div>
       </div>
 
       <OperatorDialog

@@ -67,7 +67,12 @@
   align-items: center;
   justify-content: center;
 }
-
+.whatisthis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 50px;
+}
 .fromBoilerHeading {
   font-weight: bold;
   font-size: larger;
