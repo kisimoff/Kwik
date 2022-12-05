@@ -1,10 +1,10 @@
 ## What is this?
 ### This is a prototype of a distributed medical system for: 
--Logging patient information on recived call
--Finding a hospital based on patient postcode
--Auto allocation of an ambulance depenging on it's avaliability
--Updating patient data
--Querying existing patients
+* Logging patient information on recived call
+* Finding a hospital based on patient postcode
+* Auto allocation of an ambulance depenging on it's avaliability
+* Updating patient data
+* Querying existing patients
 
 **Live at:** https://vtwenty3.github.io/Kwik/
 
