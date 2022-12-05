@@ -1,4 +1,4 @@
-## What is this?
+# About
 ### This is a prototype of a distributed medical system for: 
 * Logging patient information on recived call
 * Finding a hospital based on patient postcode
