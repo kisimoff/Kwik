@@ -1,10 +1,12 @@
 ## What is this?
-###This is a prototype of a distributed medical system for: 
+### This is a prototype of a distributed medical system for: 
 -Logging patient information on recived call
 -Finding a hospital based on patient postcode
 -Auto allocation of an ambulance depenging on it's avaliability
 -Updating patient data
 -Querying existing patients
+
+**Live at:** https://vtwenty3.github.io/Kwik/
 
 ## The system consists of three main screens:
 ### Operator 
@@ -20,8 +22,6 @@ The idea is that each ambulance would have a smartphone and would get all the pa
 
 
 # How to run it?
-Simply visit https://vtwenty3.github.io/Kwik/ to see it live and have a go. 
-### To play with the source code folow these steps:
 1.	Download and extract the master branch from the repo. 
 2.	Install NPM package manager
 3.	Open a terminal window (works perfectly with VS Code terminal)
