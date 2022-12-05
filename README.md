@@ -1,17 +1,27 @@
-# What is this?
-This is a prototype of a medical system which has three main parts:
+## What is this?
+###This is a prototype of a distributed medical system for: 
+-Logging patient information on recived call
+-Finding a hospital based on patient postcode
+-Auto allocation of an ambulance depenging on it's avaliability
+-Updating patient data
+-Querying existing patients
 
-## Operator 
-Receives a call from a potential patient and inputs the data into the system. On submission, the system tryies to find a free ambulance based on the patient postcode. Current supported postcodes are simply 1, 2, 3. There are 3 hospitals with 3 ambulances each. If there is no ambulances avaliable for the specified postcode, the patient is assigned a "waiting" state, which would update as soon there is a free ambulance. The patient's information is passed to the Hospital and Ambulance.   Each request is called a “Case” in the described system.
+## The system consists of three main screens:
+### Operator 
+Receives a call from a potential patient and inputs the patient infromation into the system. The operator can query a patient on "nhs" number, to check if the patient exists in the database. On submission the system checks for free ambulance based on the patient postcode. Current supported postcodes are simply 1, 2, 3. There are 3 hospitals with 3 ambulances each. If there is free ambulance, the case is assigned to the ambulance and it's state is "assigned". If there is no ambulances avaliable in the hospital, the caser is with a "waiting" state, which would update as soon as an ambulance gets freed up. The case is always allocated to a hospital with "waiting" or "assigned" state, depending on the ambulance avaliability. 
+### Hospital
+Each hospital would receive a Case from the operator, based on the case postcode. The hospital would have acess to all the information of the case, which can be updated by the hospital screen or the ambulance screen. The hospital also can change the state of the case from "waiting", "assigned" or "hospitalised" to  "discharged" at anytime. Dischagring a patient automatically ads all of his infromation to a "Patients" database.
+### Ambulance
+The idea is that each ambulance would have a smartphone and would get all the patient data on reciving a case. The ambulance would recive a case depending on the patient location. The ambulance  would be able to read and update the case’s information. The ambulance can also change the state of the patient to “hospitalised”, which means that the patient is "delivered" at the hospital. This would free up the ambulance and if there are patients waiting, it would get automatically assigned a new case. In the system developed there are 3 ambulances per hospital, but can be easily adjusted from the “numberOfAmbulances” variable in the source-code. 
 
-## Hospital
-The hospital would receive a Case from the operator. The hospital would have all the information of the patient, which can be updated by the hospital or the ambulance. The hospital can change the state of the patient from "Assigned" and "Waiting" to "Discharged".
+## Simplified Flow Chart
+![alt text](https://github.com/vtwenty3/Kwik/blob/master/Kwic%402x.png)
 
-## Ambulance
-An ambulance would receive a case, depending on its availability and would be able to read and update the case’s information. The ambulance can change the state of the patient to “hospitalised”, which means that the patient is "delivered" at the hospital In the system developed there are 3 ambulances per hospital, but can be easily adjusted from the “numberOfAmbulances” variable in the source-code. 
+
 
 # How to run it?
-Simply visit https://vtwenty3.github.io/Kwik/ to see it live and have a go. To modify the source code folow these steps:
+Simply visit https://vtwenty3.github.io/Kwik/ to see it live and have a go. 
+### To play with the source code folow these steps:
 1.	Download and extract the master branch from the repo. 
 2.	Install NPM package manager
 3.	Open a terminal window (works perfectly with VS Code terminal)
